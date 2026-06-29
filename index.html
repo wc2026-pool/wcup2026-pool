@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIFA World Cup 2026 — Knockout Prediction Pool</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    /* WC2026 Official Palette */
+    --bg:        #060c18;
+    --card:      #0d1929;
+    --card2:     #132035;
+    --border:    #1d3054;
+    --border2:   #2a4070;
+
+    /* Primary: FIFA Red */
+    --red:       #e8001d;
+    --red-dark:  #9b0013;
+    --red-glow:  rgba(232,0,29,.25);
+
+    /* Secondary: Trophy Gold */
+    --gold:      #ffc107;
+    --gold-dark: #b8860b;
+    --gold-glow: rgba(255,193,7,.2);
+
+    /* Accent: Sky Blue (host nations USA/CAN/MEX) */
+    --blue:      #00aaff;
+    --blue-dim:  #0066aa;
+
+    /* Status */
+    --green:     #00e676;
+    --green-bg:  rgba(0,230,118,.12);
+    --wrong-bg:  rgba(232,0,29,.12);
+
+    /* Text */
+    --text:      #eaf0ff;
+    --muted:     #5a7299;
+    --muted2:    #3d5478;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse 80% 40% at 50% -10%, rgba(232,0,29,.08) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 30% at 80% 110%, rgba(0,170,255,.05) 0%, transparent 60%);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, #0a0014 0%, #1a0008 40%, #0a1428 100%);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, var(--red) 0%, transparent 4px) left/4px 100% repeat-x,
+                linear-gradient(90deg, var(--gold) 0%, transparent 4px) right/4px 100% repeat-x;
+    opacity: .6;
+  }
+  .header-inner {
+    max-width: 1280px; margin: 0 auto;
+    padding: 18px 24px;
+    display: flex; align-items: center; gap: 20px;
+    position: relative; z-index: 1;
+  }
+  .header-logo {
+    width: 54px; height: 54px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+    box-shadow: 0 0 20px var(--red-glow), 0 0 40px var(--gold-glow);
+  }
+  .header-text h1 {
+    font-family: 'Bebas Neue', 'Impact', sans-serif;
+    font-size: 1.7rem; letter-spacing: .08em; color: #fff;
+    text-shadow: 0 0 20px var(--red-glow);
+  }
+  .header-text .sub {
+    font-size: .75rem; color: var(--gold); margin-top: 1px;
+    letter-spacing: .04em; text-transform: uppercase;
+  }
+  .header-badge {
+    margin-left: auto;
+    background: linear-gradient(135deg, var(--red), var(--red-dark));
+    color: #fff; font-size: .7rem; font-weight: 700;
+    padding: 5px 14px; border-radius: 20px;
+    border: 1px solid rgba(255,255,255,.2);
+    box-shadow: 0 0 12px var(--red-glow);
+    animation: badge-pulse 2s ease-in-out infinite;
+  }
+  @keyframes badge-pulse {
+    0%,100% { box-shadow: 0 0 12px var(--red-glow); }
+    50%      { box-shadow: 0 0 24px var(--red-glow), 0 0 40px rgba(232,0,29,.15); }
+  }
+
+  /* ── ROUND BANNER ── */
+  .round-banner {
+    background: linear-gradient(90deg, var(--red-dark) 0%, #1a0008 30%, #0a1428 70%, var(--blue-dim) 100%);
+    text-align: center; padding: 6px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: .9rem; letter-spacing: .15em; color: var(--gold);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── TAB NAV ── */
+  .tab-nav {
+    background: var(--card); border-bottom: 1px solid var(--border);
+    display: flex; overflow-x: auto; padding: 0 8px; gap: 0;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .tab-nav::-webkit-scrollbar { height: 0; }
+  .tab-btn {
+    padding: 13px 18px; font-size: .8rem; font-weight: 600;
+    color: var(--muted); border: none; background: none;
+    cursor: pointer; border-bottom: 3px solid transparent;
+    white-space: nowrap; transition: all .2s; position: relative;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--red); border-bottom-color: var(--red); }
+  .tab-btn.round-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .tab-btn.player-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .tab-sep { padding: 13px 6px; color: var(--border2); font-size: 1rem; }
+
+  /* ── CONTENT WRAPPER ── */
+  .tab-content { display: none; padding: 20px 16px; max-width: 1280px; margin: 0 auto; }
+  .tab-content.active { display: block; }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px; margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: .78rem; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .08em; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title::before {
+    content: ''; display: block;
+    width: 3px; height: 14px; border-radius: 2px;
+    background: var(--red);
+  }
+
+  /* ── LEADERBOARD ── */
+  .lb-table { width: 100%; border-collapse: collapse; }
+  .lb-table th {
+    text-align: left; padding: 10px 14px;
+    font-size: .72rem; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .06em;
+    border-bottom: 1px solid var(--border);
+  }
+  .lb-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: .88rem; }
+  .lb-table tr:last-child td { border-bottom: none; }
+  .lb-table tbody tr { transition: background .15s; cursor: pointer; }
+  .lb-table tbody tr:hover td { background: var(--card2); }
+  .lb-table tr.rank-1 td { background: rgba(255,193,7,.04); }
+  .lb-table tr.rank-1:hover td { background: rgba(255,193,7,.09); }
+  .rank-num { font-weight: 800; font-size: 1.05rem; }
+  .rank-1 .rank-num { color: var(--gold); }
+  .rank-2 .rank-num { color: #c0c8d8; }
+  .rank-3 .rank-num { color: #cd7f32; }
+  .pts-big { font-size: 1.1rem; font-weight: 800; color: var(--gold); }
+  .champion-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--card2); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 3px 10px;
+    font-size: .73rem; color: var(--gold);
+  }
+
+  /* ── STAT CARDS ── */
+  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+  .stat-card {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .stat-card::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px; background: linear-gradient(90deg, var(--red), var(--gold));
+  }
+  .stat-val { font-size: 1.7rem; font-weight: 800; color: var(--gold); line-height: 1; }
+  .stat-lbl { font-size: .7rem; color: var(--muted); margin-top: 4px; }
+
+  /* ── MATCH GRID ── */
+  .match-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 12px; }
+  .match-card {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px; position: relative;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .match-card:hover { border-color: var(--border2); }
+  .match-card.is-final { border-color: rgba(0,230,118,.3); box-shadow: 0 0 20px rgba(0,230,118,.08); }
+  .match-card.is-upset { border-color: rgba(255,193,7,.4); box-shadow: 0 0 20px var(--gold-glow); }
+
+  .match-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .match-num-badge {
+    background: var(--red); color: #fff;
+    font-size: .65rem; font-weight: 700;
+    padding: 2px 7px; border-radius: 4px; flex-shrink: 0;
+  }
+  .match-date { font-size: .7rem; color: var(--muted); flex: 1; }
+  .result-badge {
+    font-size: .62rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 10px; flex-shrink: 0;
+  }
+  .result-badge.rFinal  { background: var(--green-bg); color: var(--green); border: 1px solid rgba(0,230,118,.3); }
+  .result-badge.rLive   { background: var(--red-glow); color: var(--red); border: 1px solid rgba(232,0,29,.3); animation: pulse 1.5s infinite; }
+  .result-badge.rPending{ background: var(--card); color: var(--muted2); border: 1px solid var(--border); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  .match-teams { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .team-block { flex: 1; }
+  .team-name { font-size: .88rem; font-weight: 700; }
+  .team-rank { font-size: .67rem; color: var(--muted); }
+  .team-fav  { color: var(--gold); font-size: .65rem; }
+  .team-name.winner { color: var(--green); }
+  .team-name.loser  { color: var(--muted2); text-decoration: line-through; }
+  .vs-divider { font-size: .65rem; color: var(--muted2); background: var(--card); padding: 3px 7px; border-radius: 4px; flex-shrink: 0; font-weight: 700; }
+  .upset-ribbon {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: linear-gradient(90deg, rgba(255,193,7,.15), transparent);
+    border: 1px solid rgba(255,193,7,.3);
+    color: var(--gold); font-size: .67rem; font-weight: 700;
+    padding: 3px 10px; border-radius: 6px; margin-bottom: 8px;
+  }
+
+  /* Pick bar */
+  .pick-bar-label { display: flex; justify-content: space-between; font-size: .7rem; color: var(--muted); margin-bottom: 4px; }
+  .pick-bar-track { height: 5px; background: var(--card); border-radius: 3px; overflow: hidden; }
+  .pick-bar-fill  { height: 100%; background: linear-gradient(90deg, var(--red), var(--gold)); border-radius: 3px; transition: width .6s ease; }
+
+  /* ── PLAYER PICKS ── */
+  .player-picks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(275px, 1fr)); gap: 9px; }
+  .pick-row {
+    display: flex; align-items: center; gap: 9px;
+    padding: 9px 12px; background: var(--card2);
+    border-radius: 9px; border-left: 3px solid var(--border);
+    font-size: .84rem; transition: border-color .2s;
+  }
+  .pick-row.correct { border-left-color: var(--green); background: var(--green-bg); }
+  .pick-row.wrong   { border-left-color: var(--red);   background: var(--wrong-bg); }
+  .pick-row.pending { border-left-color: var(--border); }
+  .pick-icon { font-size: .95rem; flex-shrink: 0; }
+  .pick-match { color: var(--muted); font-size: .68rem; }
+  .pick-team  { font-weight: 600; margin-top: 1px; }
+  .pick-pts   { margin-left: auto; font-weight: 800; font-size: .85rem; color: var(--green); flex-shrink: 0; }
+
+  /* ── CHAMPION STATS ── */
+  .champ-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .champ-chip {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 16px; text-align: center;
+    min-width: 90px;
+  }
+  .champ-chip .cnt { font-size: 1.4rem; font-weight: 800; color: var(--gold); }
+  .champ-chip .cname { font-size: .78rem; font-weight: 600; margin-top: 2px; }
+  .champ-chip .clabel { font-size: .65rem; color: var(--muted); margin-top: 2px; }
+
+  /* ── PENDING ROUND ── */
+  .pending-round { text-align: center; padding: 48px 20px; }
+  .pending-round .icon { font-size: 3.5rem; margin-bottom: 12px; }
+  .pending-round .title { font-family: 'Bebas Neue',sans-serif; font-size: 1.4rem; letter-spacing: .1em; color: var(--text); margin-bottom: 6px; }
+  .pending-round .desc { font-size: .82rem; color: var(--muted); }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+    .match-grid { grid-template-columns: 1fr; }
+    .header-text h1 { font-size: 1.3rem; }
+    .tab-btn { padding: 11px 12px; font-size: .76rem; }
+    .header-logo { width: 44px; height: 44px; font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-logo">🏆</div>
+    <div class="header-text">
+      <h1>FIFA World Cup 2026</h1>
+      <div class="sub">🇺🇸 🇨🇦 🇲🇽 &nbsp;·&nbsp; Knockout Prediction Pool &nbsp;·&nbsp; 15 Players</div>
+    </div>
+    <span class="header-badge" id="currentRoundBadge">🔴 LIVE · R32</span>
+  </div>
+</div>
+<div class="round-banner">⚽&nbsp; ROUND OF 32 &nbsp;·&nbsp; 29 มิ.ย. – 4 ก.ค. 2026 &nbsp;⚽</div>
+
+<!-- TABS -->
+<div class="tab-nav" id="mainTabNav"></div>
+<div id="mainTabContent"></div>
+
+<script>
+// ============================================================
+// ⚙️  DATA CONFIGURATION
+// ============================================================
+const FIFA_RANKS = {
+  'Argentina': 1, 'Spain': 2, 'France': 3, 'England': 4, 'Portugal': 5,
+  'Brazil': 6, 'Morocco': 7, 'Netherlands': 8, 'Belgium': 9, 'Germany': 10,
+  'Croatia': 11, 'Colombia': 13, 'Mexico': 14, 'Senegal': 15, 'Uruguay': 16,
+  'USA': 17, 'Japan': 18, 'Switzerland': 19, 'Iran': 20, 'Türkiye': 22,
+  'Ecuador': 23, 'Austria': 24, 'South Korea': 25, 'Australia': 27,
+  'Algeria': 28, 'Egypt': 29, 'Canada': 30, 'Norway': 31, 'Ivory Coast': 33,
+  'Panama': 34, 'Sweden': 38, 'Czechia': 40, 'Paraguay': 41, 'Scotland': 42,
+  'Tunisia': 45, 'DR Congo': 46, 'Uzbekistan': 50, 'Qatar': 56, 'Iraq': 57,
+  'South Africa': 60, 'Saudi Arabia': 61, 'Jordan': 63,
+  'Bosnia and Herzegovina': 64, 'Cape Verde': 67, 'Ghana': 73, 'Curaçao': 82
+};
+
+const ROUND_POINTS = {
+  R32:   { base: 2,  upset: 3  },
+  R16:   { base: 5,  upset: 5  },
+  QF:    { base: 10, upset: 10 },
+  SF:    { base: 20, upset: 15 },
+  '3rd': { base: 5,  upset: 5  },
+  Final: { base: 30, upset: 20 }
+};
+const CHAMPION_BONUS = { R32: 50, R16: 30, QF: 15, SF: 5 };
+
+// ============================================================
+// 🏟️  MATCHES
+// ============================================================
+const R32_MATCHES = [
+  { id:'m1',  num:1,  date:'29 มิ.ย. 02:00',  teamA:'South Africa', teamB:'Canada'                   },
+  { id:'m2',  num:2,  date:'30 มิ.ย. 00:00',  teamA:'Brazil',       teamB:'Japan'                    },
+  { id:'m3',  num:3,  date:'30 มิ.ย. 03:30',  teamA:'Germany',      teamB:'Paraguay'                 },
+  { id:'m4',  num:4,  date:'30 มิ.ย. 08:00',  teamA:'Netherlands',  teamB:'Morocco'                  },
+  { id:'m5',  num:5,  date:'1 ก.ค. 00:00',    teamA:'Ivory Coast',  teamB:'Norway'                   },
+  { id:'m6',  num:6,  date:'1 ก.ค. 04:00',    teamA:'France',       teamB:'Sweden'                   },
+  { id:'m7',  num:7,  date:'1 ก.ค. 08:00',    teamA:'Mexico',       teamB:'Ecuador'                  },
+  { id:'m8',  num:8,  date:'1 ก.ค. 23:00',    teamA:'England',      teamB:'DR Congo'                 },
+  { id:'m9',  num:9,  date:'2 ก.ค. 03:00',    teamA:'Belgium',      teamB:'Senegal'                  },
+  { id:'m10', num:10, date:'2 ก.ค. 07:00',    teamA:'USA',          teamB:'Bosnia and Herzegovina'   },
+  { id:'m11', num:11, date:'3 ก.ค. 02:00',    teamA:'Spain',        teamB:'Austria'                  },
+  { id:'m12', num:12, date:'3 ก.ค. 06:00',    teamA:'Portugal',     teamB:'Croatia'                  },
+  { id:'m13', num:13, date:'3 ก.ค. 10:00',    teamA:'Switzerland',  teamB:'Algeria'                  },
+  { id:'m14', num:14, date:'4 ก.ค. 01:00',    teamA:'Australia',    teamB:'Egypt'                    },
+  { id:'m15', num:15, date:'4 ก.ค. 05:00',    teamA:'Argentina',    teamB:'Cape Verde'               },
+  { id:'m16', num:16, date:'4 ก.ค. 08:30',    teamA:'Colombia',     teamB:'Ghana'                    }
+];
+
+// ============================================================
+// 🏆  RESULTS — อัปเดตตรงนี้เมื่อทราบผล
+// null = ยังไม่แข่ง / 'TeamName' = ทีมที่ชนะ
+// ============================================================
+const RESULTS = {
+  R32: {
+    m1:  'Canada',   // ✅ 29 มิ.ย.
+    m2:  null, m3:  null, m4:  null, m5:  null, m6:  null,
+    m7:  null, m8:  null, m9:  null, m10: null, m11: null,
+    m12: null, m13: null, m14: null, m15: null, m16: null
+  },
+  R16: {}, QF: {}, SF: {}, Final: {}
+};
+
+// ============================================================
+// 👥  PLAYERS
+// ============================================================
+const PLAYERS = [
+  { name:'รัฐพงศ์ 1',     R32:['Canada','Brazil','Germany','Netherlands','Ivory Coast','France','Ecuador','England','Senegal','USA','Spain','Portugal','Algeria','Egypt','Argentina','Colombia'],   champion:'Argentina', championRound:'R32' },
+  { name:'รัฐพงศ์ 2',     R32:['Canada','Brazil','Germany','Netherlands','Ivory Coast','France','Ecuador','England','Senegal','USA','Spain','Portugal','Algeria','Egypt','Argentina','Colombia'],   champion:'Germany',   championRound:'R32' },
+  { name:'KY1',           R32:['Canada','Brazil','Germany','Netherlands','Ivory Coast','France','Mexico','England','Belgium','USA','Spain','Portugal','Switzerland','Egypt','Argentina','Colombia'],  champion:'Argentina', championRound:'R32' },
+  { name:'KY2',           R32:['Canada','Japan','Germany','Morocco','Norway','France','Mexico','England','Belgium','USA','Spain','Portugal','Switzerland','Australia','Argentina','Colombia'],        champion:'France',    championRound:'R32' },
+  { name:'SUN1',          R32:['Canada','Japan','Germany','Netherlands','Ivory Coast','France','Mexico','England','Belgium','USA','Spain','Portugal','Switzerland','Egypt','Argentina','Colombia'],   champion:'Argentina', championRound:'R32' },
+  { name:'SUN2',          R32:['Canada','Brazil','Germany','Netherlands','Ivory Coast','France','Mexico','England','Belgium','USA','Spain','Portugal','Switzerland','Egypt','Argentina','Colombia'],  champion:null, championRound:null },
+  { name:'Mod winning 1', R32:['Canada','Brazil','Germany','Netherlands','Norway','France','Mexico','England','Belgium','USA','Spain','Portugal','Switzerland','Australia','Argentina','Colombia'],   champion:'Spain',     championRound:'R32' },
+  { name:'Mod winning 2', R32:['Canada','Brazil','Germany','Netherlands','Norway','France','Mexico','England','Belgium','USA','Spain','Portugal','Switzerland','Australia','Argentina','Colombia'],   champion:'France',    championRound:'R32' },
+  { name:'Direk',         R32:['Canada','Brazil','Germany','Netherlands','Norway','France','Mexico','England','Senegal','USA','Spain','Portugal','Switzerland','Egypt','Argentina','Colombia'],       champion:'France',    championRound:'R32' },
+  { name:'Arsom3',        R32:['Canada','Brazil','Germany','Netherlands','Ivory Coast','France','Mexico','England','Belgium','USA','Spain','Portugal','Switzerland','Egypt','Argentina','Colombia'],  champion:'Spain',     championRound:'R32' },
+  { name:'เด่น',          R32:['Canada','Brazil','Germany','Netherlands','Ivory Coast','France','Mexico','England','Senegal','USA','Spain','Portugal','Switzerland','Australia','Argentina','Colombia'], champion:'Argentina', championRound:'R32' },
+  { name:'Chaidet01',     R32:['Canada','Brazil','Germany','Netherlands','Norway','France','Mexico','England','Belgium','USA','Spain','Portugal','Switzerland','Australia','Argentina','Colombia'],   champion:'Argentina', championRound:'R32' },
+  { name:'Chaidet02',     R32:['Canada','Japan','Germany','Netherlands','Ivory Coast','France','Mexico','England','Belgium','USA','Spain','Portugal','Algeria','Egypt','Argentina','Colombia'],       champion:'England',   championRound:'R32' },
+  { name:'ภัทราวุธ 1',   R32:['South Africa','Brazil','Germany','Netherlands','Norway','France','Mexico','England','Belgium','USA','Spain','Portugal','Algeria','Australia','Argentina','Colombia'],  champion:'Spain',     championRound:'R32' },
+  { name:'ภัทราวุธ 2',   R32:['South Africa','Brazil','Germany','Netherlands','Norway','France','Mexico','England','Belgium','USA','Spain','Portugal','Switzerland','Australia','Argentina','Colombia'], champion:'France', championRound:'R32' }
+];
+
+// ============================================================
+// 🔢  SCORING ENGINE
+// ============================================================
+function getRank(t) { return FIFA_RANKS[t] || 999; }
+function isUpset(w, l) { return getRank(w) > getRank(l); }
+
+function computePlayerScore(player) {
+  let total = 0;
+  const rp = ROUND_POINTS.R32;
+  let correct = 0, upsets = 0, r32Total = 0, perfectOK = true;
+  const detail = [];
+
+  R32_MATCHES.forEach((m, i) => {
+    const result = RESULTS.R32[m.id];
+    const pick = player.R32[i];
+    let pts = 0, status = 'pending';
+    if (result) {
+      if (pick === result) {
+        pts = rp.base; correct++;
+        const loser = result === m.teamA ? m.teamB : m.teamA;
+        if (isUpset(result, loser)) { pts += rp.upset; upsets++; status = 'correct_upset'; }
+        else { status = 'correct'; }
+      } else { status = 'wrong'; perfectOK = false; }
+      r32Total += pts;
+    } else { perfectOK = false; }
+    detail.push({ match: m, pick, result, pts, status });
+  });
+
+  const allIn = R32_MATCHES.every(m => RESULTS.R32[m.id] !== null);
+  let perfectRound = false;
+  if (allIn && perfectOK && correct === 16) { r32Total *= 2; perfectRound = true; }
+
+  total += r32Total;
+
+  let champPts = 0;
+  if (player.champion && RESULTS.Final && RESULTS.Final.winner === player.champion)
+    champPts = CHAMPION_BONUS[player.championRound] || 0;
+  total += champPts;
+
+  return { total, breakdown: { r32: { pts: r32Total, correct, upsets, detail }, champion: { team: player.champion, round: player.championRound, pts: champPts }, perfectRound } };
+}
+
+// ============================================================
+// 🎨  RENDER
+// ============================================================
+function buildNav() {
+  const nav = document.getElementById('mainTabNav');
+  const tabs = [
+    { id:'lb',    label:'🏆 Leaderboard', cls:'' },
+    { id:'r32',   label:'⚽ R32',          cls:'round-tab' },
+    { id:'r16',   label:'⚡ R16',           cls:'round-tab' },
+    { id:'qf',    label:'🔥 QF',            cls:'round-tab' },
+    { id:'sf',    label:'🌟 SF',            cls:'round-tab' },
+    { id:'final', label:'🥇 Final',         cls:'round-tab' },
+    { id:'_sep',  label:'|', cls:'sep' }
+  ];
+  PLAYERS.forEach(p => tabs.push({ id:'p_'+p.name, label:'👤 '+p.name, cls:'player-tab' }));
+
+  nav.innerHTML = tabs.map(t =>
+    t.cls === 'sep'
+      ? `<span class="tab-sep">|</span>`
+      : `<button class="tab-btn ${t.cls}" data-tab="${t.id}" onclick="switchTab('${t.id}')">${t.label}</button>`
+  ).join('');
+}
+
+function switchTab(id) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tc_'+id));
+}
+
+// LEADERBOARD
+function buildLeaderboard() {
+  const scores = PLAYERS.map(p => {
+    const sc = computePlayerScore(p);
+    return { name:p.name, champion:p.champion, championRound:p.championRound, ...sc };
+  }).sort((a,b) => b.total - a.total);
+
+  let rankNum = 0, prev = -1;
+  scores.forEach((s,i) => { if (s.total !== prev) { rankNum = i+1; prev = s.total; } s.rank = rankNum; });
+
+  const champCount = {};
+  PLAYERS.forEach(p => { if(p.champion) champCount[p.champion] = (champCount[p.champion]||0)+1; });
+
+  const rankIcon = r => r===1?'🥇':r===2?'🥈':r===3?'🥉':r;
+
+  return `
+  <div class="card">
+    <div class="card-title">Leaderboard — คะแนนสะสม</div>
+    <table class="lb-table">
+      <thead><tr>
+        <th>#</th><th>ผู้เล่น</th><th>R32</th><th>R16</th><th>QF</th><th>SF</th><th>Final</th><th>แชมป์โบนัส</th><th>รวม</th><th>ล็อคแชมป์</th>
+      </tr></thead>
+      <tbody>
+        ${scores.map(s => `
+        <tr class="rank-${s.rank}" onclick="switchTab('p_${s.name}')">
+          <td><span class="rank-num">${rankIcon(s.rank)}</span></td>
+          <td><strong>${s.name}</strong></td>
+          <td>${s.breakdown.r32.pts}</td>
+          <td style="color:var(--muted2)">—</td>
+          <td style="color:var(--muted2)">—</td>
+          <td style="color:var(--muted2)">—</td>
+          <td style="color:var(--muted2)">—</td>
+          <td>${s.breakdown.champion.pts > 0 ? '<span style="color:var(--gold);font-weight:700">+'+s.breakdown.champion.pts+'</span>' : '<span style="color:var(--muted2)">—</span>'}</td>
+          <td><span class="pts-big">${s.total}</span></td>
+          <td>${s.champion
+            ? `<span class="champion-pill">🏆 ${s.champion}</span>`
+            : '<span style="color:var(--muted2);font-size:.72rem">ไม่ได้ล็อค</span>'
+          }</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">สถิติการล็อคแชมป์</div>
+    <div class="champ-grid">
+      ${Object.entries(champCount).sort((a,b)=>b[1]-a[1]).map(([team,cnt]) => `
+        <div class="champ-chip">
+          <div class="cnt">${cnt}</div>
+          <div class="cname">${team}</div>
+          <div class="clabel">คน</div>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+}
+
+// R32 TAB
+function buildR32Tab() {
+  const done = R32_MATCHES.filter(m => RESULTS.R32[m.id]).length;
+  const upsetCount = R32_MATCHES.filter(m => {
+    const r = RESULTS.R32[m.id];
+    return r && isUpset(r, r===m.teamA ? m.teamB : m.teamA);
+  }).length;
+
+  const cards = R32_MATCHES.map(m => {
+    const result = RESULTS.R32[m.id];
+    const rA = getRank(m.teamA), rB = getRank(m.teamB);
+    const favA = rA < rB;
+    const upset = result ? isUpset(result, result===m.teamA ? m.teamB : m.teamA) : false;
+
+    const picksA = PLAYERS.filter(p => p.R32[m.num-1] === m.teamA).length;
+    const picksB = PLAYERS.filter(p => p.R32[m.num-1] === m.teamB).length;
+    const total  = picksA + picksB;
+    const pctA   = total ? Math.round(picksA/total*100) : 50;
+
+    const statusBadge = !result
+      ? `<span class="result-badge rPending">PENDING</span>`
+      : `<span class="result-badge rFinal">FINAL${upset?' 🔥':''}</span>`;
+
+    const clsA = result ? (result===m.teamA ? 'winner':'loser') : '';
+    const clsB = result ? (result===m.teamB ? 'winner':'loser') : '';
+    const cardCls = result ? (upset ? 'is-upset' : 'is-final') : '';
+
+    return `
+    <div class="match-card ${cardCls}">
+      <div class="match-header">
+        <span class="match-num-badge">M${m.num}</span>
+        <span class="match-date">📅 ${m.date}</span>
+        ${statusBadge}
+      </div>
+      ${upset ? `<div class="upset-ribbon">⚡ UPSET — +3 Bonus Point!</div>` : ''}
+      <div class="match-teams">
+        <div class="team-block">
+          <div class="team-name ${clsA}">${m.teamA}</div>
+          <div class="team-rank">FIFA #${rA} ${favA?'<span class="team-fav">★ FAV</span>':''}</div>
+        </div>
+        <span class="vs-divider">VS</span>
+        <div class="team-block" style="text-align:right">
+          <div class="team-name ${clsB}">${m.teamB}</div>
+          <div class="team-rank">${!favA?'<span class="team-fav">★ FAV</span>':''} FIFA #${rB}</div>
+        </div>
+      </div>
+      <div class="pick-bar-label">
+        <span>${m.teamA} <strong style="color:var(--text)">${picksA}</strong> คน</span>
+        <span><strong style="color:var(--text)">${picksB}</strong> คน ${m.teamB}</span>
+      </div>
+      <div class="pick-bar-track"><div class="pick-bar-fill" style="width:${pctA}%"></div></div>
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="stat-row">
+    <div class="stat-card"><div class="stat-val">${done}<span style="font-size:.9rem;color:var(--muted)">/16</span></div><div class="stat-lbl">นัดที่จบแล้ว</div></div>
+    <div class="stat-card"><div class="stat-val">${16-done}</div><div class="stat-lbl">นัดที่รอผล</div></div>
+    <div class="stat-card"><div class="stat-val">${upsetCount}</div><div class="stat-lbl">⚡ Upsets!</div></div>
+    <div class="stat-card"><div class="stat-val">${PLAYERS.length}</div><div class="stat-lbl">ผู้เล่น</div></div>
+  </div>
+  <div class="match-grid">${cards}</div>`;
+}
+
+// PENDING ROUND
+function buildPendingRound(name) {
+  return `<div class="pending-round">
+    <div class="icon">⚽</div>
+    <div class="title">${name}</div>
+    <div class="desc">รอบนี้ยังไม่เริ่ม — ผลจะแสดงเมื่ออัปเดต RESULTS ใน code</div>
+  </div>`;
+}
+
+// PLAYER TAB
+function buildPlayerTab(player) {
+  const sc = computePlayerScore(player);
+  const r32 = sc.breakdown.r32;
+
+  const picks = R32_MATCHES.map((m, i) => {
+    const result = RESULTS.R32[m.id];
+    const pick = player.R32[i];
+    const d = r32.detail[i];
+    let icon='⏳', cls='pending', ptsStr='';
+    if (result) {
+      if (pick === result) {
+        icon = isUpset(result, result===m.teamA?m.teamB:m.teamA) ? '⚡' : '✅';
+        cls = 'correct'; ptsStr = `+${d.pts}`;
+      } else { icon='❌'; cls='wrong'; ptsStr='0'; }
+    }
+    return `
+    <div class="pick-row ${cls}">
+      <span class="pick-icon">${icon}</span>
+      <div style="flex:1;min-width:0">
+        <div class="pick-match">คู่ที่ ${m.num}: ${m.teamA} vs ${m.teamB}</div>
+        <div class="pick-team">${pick}</div>
+      </div>
+      ${ptsStr ? `<span class="pick-pts">${ptsStr}</span>` : ''}
+    </div>`;
+  }).join('');
+
+  const champStatus = !player.champion ? '—' :
+    (RESULTS.Final && RESULTS.Final.winner === player.champion) ? `✅ +${CHAMPION_BONUS[player.championRound]}` :
+    (RESULTS.Final && RESULTS.Final.winner) ? '❌' : '⏳';
+
+  return `
+  <div class="stat-row">
+    <div class="stat-card"><div class="stat-val">${sc.total}</div><div class="stat-lbl">คะแนนรวม</div></div>
+    <div class="stat-card"><div class="stat-val">${r32.correct}<span style="font-size:.9rem;color:var(--muted)">/16</span></div><div class="stat-lbl">ถูกใน R32</div></div>
+    <div class="stat-card"><div class="stat-val">${r32.pts}</div><div class="stat-lbl">แต้ม R32</div></div>
+    <div class="stat-card"><div class="stat-val" style="font-size:1rem">${player.champion || '—'}</div><div class="stat-lbl">ล็อคแชมป์ ${champStatus}</div></div>
+  </div>
+  ${sc.breakdown.perfectRound ? `
+  <div style="background:linear-gradient(90deg,rgba(0,230,118,.12),rgba(255,193,7,.08));border:1px solid rgba(0,230,118,.3);border-radius:10px;padding:12px 18px;text-align:center;margin-bottom:16px">
+    <span style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.1em;color:var(--green)">🎯 PERFECT ROUND! ×2 คะแนน</span>
+  </div>` : ''}
+  <div class="card">
+    <div class="card-title">คำทาย Round of 32</div>
+    <div class="player-picks-grid">${picks}</div>
+  </div>
+  <div class="card">
+    <div class="card-title">รอบถัดไป</div>
+    <div class="pending-round" style="padding:24px"><div class="desc">ฟอร์ม R16–Final จะเปิดหลัง R32 จบ</div></div>
+  </div>`;
+}
+
+// INIT
+function init() {
+  buildNav();
+  const wrap = document.getElementById('mainTabContent');
+
+  const sections = [
+    { id:'lb',    html: buildLeaderboard },
+    { id:'r32',   html: buildR32Tab },
+    { id:'r16',   html: () => buildPendingRound('ROUND OF 16') },
+    { id:'qf',    html: () => buildPendingRound('QUARTERFINALS') },
+    { id:'sf',    html: () => buildPendingRound('SEMIFINALS') },
+    { id:'final', html: () => buildPendingRound('GRAND FINAL') }
+  ];
+  PLAYERS.forEach(p => sections.push({ id:'p_'+p.name, html: () => buildPlayerTab(p) }));
+
+  wrap.innerHTML = sections.map(s =>
+    `<div class="tab-content" id="tc_${s.id}">${s.html()}</div>`
+  ).join('');
+
+  switchTab('lb');
+
+  const done = R32_MATCHES.filter(m => RESULTS.R32[m.id]).length;
+  document.getElementById('currentRoundBadge').textContent =
+    done < 16 ? `🔴 LIVE · R32 ${done}/16` : '✅ R32 COMPLETE';
+}
+
+init();
+</script>
+</body>
+</html>
