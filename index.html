@@ -743,7 +743,11 @@ function buildR16Tab() {
 
   return `
   <div class="stat-row">
-    <div class="stat-card"><div class="stat-val">${done}<span style="font-size:.9rem;color:var(--muted)">/8</span></div><div class="stat-lbl">  </div>
+    <div class="stat-card"><div class="stat-val">${done}<span style="font-size:.9rem;color:var(--muted)">/8</span></div><div class="stat-lbl">นัดที่จบแล้ว</div></div>
+    <div class="stat-card"><div class="stat-val">${8-done}</div><div class="stat-lbl">นัดที่รอผล</div></div>
+    <div class="stat-card"><div class="stat-val">${upsetCount}</div><div class="stat-lbl">⚡ Upsets!</div></div>
+    <div class="stat-card"><div class="stat-val">${PLAYERS.length}</div><div class="stat-lbl">ผู้เล่น</div></div>
+  </div>
   <div class="match-grid">${cards}</div>`;
 }
 
@@ -863,18 +867,6 @@ function init() {
   const badge = document.getElementById('currentRoundBadge');
   const r32Done = R32_MATCHES.filter(m => RESULTS.R32[m.id]).length;
   const r16Done = R16_MATCHES.filter(m => RESULTS.R16[m.id]).length;
-  if (r32Done < 16) badge.textContent = `🔴 LIVE · R32 ${r32Done}/16`;
-  else if (r16Done < 8) badge.textContent = `🔴 LIVE · R16 ${r16Done}/8`;
-  else badge.textContent = '✅ R16 COMPLETE';
-}
-
-init();
-</script>
-</body>
-</html>
- document.getElementById('currentRoundBadge');
-  const r16Done = R16_MATCHES.filter(m => RESULTS.R16[m.id]).length;
-  const r32Done = R32_MATCHES.filter(m => RESULTS.R32[m.id]).length;
   if (r32Done < 16) badge.textContent = `🔴 LIVE · R32 ${r32Done}/16`;
   else if (r16Done < 8) badge.textContent = `🔴 LIVE · R16 ${r16Done}/8`;
   else badge.textContent = '✅ R16 COMPLETE';
