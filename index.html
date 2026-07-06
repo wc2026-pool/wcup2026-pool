@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FIFA World Cup 2026 — Knockout Prediction Pool</title>
+<title>Group 2 - WC2026</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -295,7 +295,7 @@
   <div class="header-inner">
     <div class="header-logo">🏆</div>
     <div class="header-text">
-      <h1>FIFA World Cup 2026</h1>
+      <h1>Group 2 - WC2026</h1>
       <div class="sub">🇺🇸 🇨🇦 🇲🇽 &nbsp;·&nbsp; Knockout Prediction Pool &nbsp;·&nbsp; 15 Players</div>
     </div>
     <span class="header-badge" id="currentRoundBadge">🔴 LIVE · R16</span>
@@ -371,6 +371,28 @@ const R16_MATCHES = [
 // 🏆  RESULTS — อัปเดตตรงนี้เมื่อทราบผล
 // null = ยังไม่แข่ง / 'TeamName' = ทีมที่ชนะ
 // ============================================================
+//
+// 📝 วิธีอัปเดตผลแต่ละรอบ:
+//
+// ► R16 (เหลือ 4 นัด): แก้ r16m5–r16m8 จาก null → ชื่อทีมที่ชนะ
+//     r16m5: คู่ Portugal vs Spain      → ใส่ 'Portugal' หรือ 'Spain'
+//     r16m6: คู่ USA vs Belgium         → ใส่ 'USA' หรือ 'Belgium'
+//     r16m7: คู่ Argentina vs Egypt     → ใส่ 'Argentina' หรือ 'Egypt'
+//     r16m8: คู่ Switzerland vs Colombia → ใส่ 'Switzerland' หรือ 'Colombia'
+//
+// ► QF (8 ทีมสุดท้าย → 4 ทีม): เพิ่ม key ใน QF: { }
+//     QF: { qfm1:'ทีมชนะ', qfm2:'ทีมชนะ', qfm3:'ทีมชนะ', qfm4:'ทีมชนะ' }
+//     (ต้องเพิ่ม QF_MATCHES array และ buildQFTab ด้วย — หรือรอใส่แค่ผล)
+//
+// ► SF (4 ทีม → 2 ทีม): เพิ่ม key ใน SF: { }
+//     SF: { sfm1:'ทีมชนะ', sfm2:'ทีมชนะ' }
+//
+// ► Final (แชมป์): เพิ่ม winner ใน Final: { }
+//     Final: { winner:'ทีมแชมป์' }
+//     ⚠️ Final.winner จะ trigger Champion Bonus ทุกคนที่ล็อคแชมป์ถูก!
+//
+// ⚠️  ชื่อทีมต้องสะกดตรงกับใน R16_MATCHES และ FIFA_RANKS ทุกตัวอักษร
+// ============================================================
 const RESULTS = {
   R32: {
     m1:  'Canada',       // ✅ 29 มิ.ย.
@@ -391,11 +413,14 @@ const RESULTS = {
     m16: 'Colombia'      // ✅ 4 ก.ค.
   },
   R16: {
-    r16m1: 'Morocco',   // ✅ 5 ก.ค. Morocco 3-0 Canada   [FOX/ESPN/AP]
-    r16m2: 'France',    // ✅ 5 ก.ค. France 1-0 Paraguay  [FOX/ESPN/AP] — Mbappé pen 70'
-    r16m3: 'Norway',
-    r16m4: 'England', r16m5: null,
-    r16m6: null, r16m7: null, r16m8: null
+    r16m1: 'Morocco',   // ✅ 5 ก.ค. Morocco 3-0 Canada
+    r16m2: 'France',    // ✅ 5 ก.ค. France 1-0 Paraguay — Mbappé pen 70'
+    r16m3: 'Norway',    // ✅ 6 ก.ค. Norway beats Brazil (UPSET!)
+    r16m4: 'England',   // ✅ 6 ก.ค. England beats Mexico
+    r16m5: null,        // ⏳ 7 ก.ค. Portugal vs Spain
+    r16m6: null,        // ⏳ 7 ก.ค. USA vs Belgium
+    r16m7: null,        // ⏳ 7 ก.ค. Argentina vs Egypt
+    r16m8: null         // ⏳ 8 ก.ค. Switzerland vs Colombia
   },
   QF: {}, SF: {}, Final: {}
 };
@@ -494,13 +519,13 @@ function computePlayerScore(player) {
     r32Detail.push({ match: m, pick, result, pts, status });
   });
 
-  const r32AllIn = R32_MATCHES.every(m => RESULTS.R32[m.id] !== null);
+  const r32AllIn = R32_MATCHES.every(m => !!RESULTS.R32[m.id]);
   let r32Perfect = false;
   if (r32AllIn && r32PerfOK && r32Correct === 16) { r32Pts *= 2; r32Perfect = true; }
   total += r32Pts;
 
   const rp16 = ROUND_POINTS.R16;
-  let r16Pts = 0, r16Correct = 0, r16Upsets = 0, r16PerfOK = true;
+  let r16Pts = 0, r16Correct = 0, r16Upsets = 0, r16PerfOK = true, r16Perfect = false;
   const r16Detail = [];
   if (player.R16) {
     R16_MATCHES.forEach((m, i) => {
@@ -518,8 +543,8 @@ function computePlayerScore(player) {
       } else { r16PerfOK = false; }
       r16Detail.push({ match: m, pick, result, pts, status });
     });
-    const r16AllIn = R16_MATCHES.every(m => RESULTS.R16[m.id] !== null);
-    if (r16AllIn && r16PerfOK && r16Correct === 8) r16Pts *= 2;
+    const r16AllIn = R16_MATCHES.every(m => !!RESULTS.R16[m.id]);
+    if (r16AllIn && r16PerfOK && r16Correct === 8) { r16Pts *= 2; r16Perfect = true; }
     total += r16Pts;
   }
 
@@ -532,7 +557,7 @@ function computePlayerScore(player) {
     total,
     breakdown: {
       r32: { pts: r32Pts, correct: r32Correct, upsets: r32Upsets, detail: r32Detail, perfect: r32Perfect },
-      r16: { pts: r16Pts, correct: r16Correct, upsets: r16Upsets, detail: r16Detail },
+      r16: { pts: r16Pts, correct: r16Correct, upsets: r16Upsets, detail: r16Detail, perfect: r16Perfect },
       champion: { team: player.champion, round: player.championRound, pts: champPts },
       perfectRound: r32Perfect
     }
@@ -632,14 +657,14 @@ function buildR32Tab() {
     return r && isUpset(r, r===m.teamA ? m.teamB : m.teamA);
   }).length;
 
-  const cards = R32_MATCHES.map(m => {
+  const cards = R32_MATCHES.map((m, i) => {
     const result = RESULTS.R32[m.id];
     const rA = getRank(m.teamA), rB = getRank(m.teamB);
     const favA = rA < rB;
     const upset = result ? isUpset(result, result===m.teamA ? m.teamB : m.teamA) : false;
 
-    const picksA = PLAYERS.filter(p => p.R32[m.num-1] === m.teamA).length;
-    const picksB = PLAYERS.filter(p => p.R32[m.num-1] === m.teamB).length;
+    const picksA = PLAYERS.filter(p => p.R32[i] === m.teamA).length;
+    const picksB = PLAYERS.filter(p => p.R32[i] === m.teamB).length;
     const total  = picksA + picksB;
     const pctA   = total ? Math.round(picksA/total*100) : 50;
 
@@ -776,7 +801,7 @@ function buildPlayerTab(player) {
       if (pick === result) {
         icon = isUpset(result, result===m.teamA?m.teamB:m.teamA) ? '⚡' : '✅';
         cls = 'correct'; ptsStr = `+${d.pts}`;
-      } else { icon='❌'; cls='wrong'; ptsStr='0'; }
+      } else { icon='❌'; cls='wrong'; }
     }
     return `
     <div class="pick-row ${cls}">
@@ -798,7 +823,7 @@ function buildPlayerTab(player) {
       if (pick === result) {
         icon = isUpset(result, result===m.teamA?m.teamB:m.teamA) ? '⚡' : '✅';
         cls = 'correct'; ptsStr = d ? `+${d.pts}` : '';
-      } else { icon='❌'; cls='wrong'; ptsStr='0'; }
+      } else { icon='❌'; cls='wrong'; }
     }
     return `
     <div class="pick-row ${cls}">
@@ -825,15 +850,19 @@ function buildPlayerTab(player) {
     <div class="stat-card"><div class="stat-val">${r16Started ? r16.pts : r32.pts}</div><div class="stat-lbl">แต้ม ${r16Started ? 'R16' : 'R32'}</div></div>
     <div class="stat-card"><div class="stat-val" style="font-size:.85rem">${champLabel}</div><div class="stat-lbl">ล็อคแชมป์ ${champStatus}</div></div>
   </div>
-  ${sc.breakdown.perfectRound ? `
-  <div style="background:linear-gradient(90deg,rgba(0,230,118,.12),rgba(255,193,7,.08));border:1px solid rgba(0,230,118,.3);border-radius:10px;padding:12px 18px;text-align:center;margin-bottom:16px">
-    <span style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.1em;color:var(--green)">🎯 PERFECT ROUND! ×2 คะแนน</span>
-  </div>` : ''}
   <div class="card">
     <div class="card-title">คำทาย Round of 32</div>
     <div class="player-picks-grid">${r32Picks}</div>
   </div>
+    ${sc.breakdown.perfectRound ? `
+  <div style="background:linear-gradient(90deg,rgba(0,230,118,.12),rgba(255,193,7,.08));border:1px solid rgba(0,230,118,.3);border-radius:10px;padding:12px 18px;text-align:center;margin-bottom:16px">
+    <span style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.1em;color:var(--green)">🎯 PERFECT R32! ×2 คะแนน</span>
+  </div>` : ''}
   ${r16Started ? `
+  ${r16.perfect ? `
+  <div style="background:linear-gradient(90deg,rgba(0,230,118,.12),rgba(255,193,7,.08));border:1px solid rgba(0,230,118,.3);border-radius:10px;padding:12px 18px;text-align:center;margin-bottom:16px">
+    <span style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.1em;color:var(--green)">🎯 PERFECT R16! ×2 คะแนน</span>
+  </div>` : ''}
   <div class="card">
     <div class="card-title">คำทาย Round of 16</div>
     <div class="player-picks-grid">${r16Picks}</div>
@@ -848,7 +877,6 @@ function buildPlayerTab(player) {
 function init() {
   buildNav();
   const wrap = document.getElementById('mainTabContent');
-
   const sections = [
     { id:'lb',    html: buildLeaderboard },
     { id:'r32',   html: buildR32Tab },
@@ -858,13 +886,10 @@ function init() {
     { id:'final', html: () => buildPendingRound('GRAND FINAL') }
   ];
   PLAYERS.forEach(p => sections.push({ id:'p_'+p.name, html: () => buildPlayerTab(p) }));
-
   wrap.innerHTML = sections.map(s =>
     `<div class="tab-content" id="tc_${s.id}">${s.html()}</div>`
   ).join('');
-
   switchTab('lb');
-
   const badge = document.getElementById('currentRoundBadge');
   const r32Done = R32_MATCHES.filter(m => RESULTS.R32[m.id]).length;
   const r16Done = R16_MATCHES.filter(m => RESULTS.R16[m.id]).length;
