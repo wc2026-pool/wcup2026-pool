@@ -301,7 +301,7 @@
     <span class="header-badge" id="currentRoundBadge">🔴 LIVE · R16</span>
   </div>
 </div>
-<div class="round-banner">⚡&nbsp; ROUND OF 16 &nbsp;·&nbsp; 5–8 ก.ค. 2026 &nbsp;⚡</div>
+<div class="round-banner">⚡&nbsp; QUARTER-FINALS &nbsp;·&nbsp; 10–12 ก.ค. 2026 &nbsp;⚡</div>
 
 <!-- TABS -->
 <div class="tab-nav" id="mainTabNav"></div>
@@ -367,6 +367,13 @@ const R16_MATCHES = [
   { id:'r16m8', num:8, date:'8 ก.ค. 03:00',  teamA:'Switzerland', teamB:'Colombia'   }
 ];
 
+const QF_MATCHES = [
+  { id:'qfm1', num:1, date:'10 ก.ค. 03:00', teamA:'France',    teamB:'Morocco'     },
+  { id:'qfm2', num:2, date:'11 ก.ค. 02:00', teamA:'Spain',     teamB:'Belgium'     },
+  { id:'qfm3', num:3, date:'12 ก.ค. 04:00', teamA:'Norway',    teamB:'England'     },
+  { id:'qfm4', num:4, date:'12 ก.ค. 08:00', teamA:'Argentina', teamB:'Switzerland' },
+];
+
 // ============================================================
 // 🏆  RESULTS — อัปเดตตรงนี้เมื่อทราบผล
 // null = ยังไม่แข่ง / 'TeamName' = ทีมที่ชนะ
@@ -417,10 +424,10 @@ const RESULTS = {
     r16m2: 'France',    // ✅ 5 ก.ค. France 1-0 Paraguay — Mbappé pen 70'
     r16m3: 'Norway',    // ✅ 6 ก.ค. Norway beats Brazil (UPSET!)
     r16m4: 'England',   // ✅ 6 ก.ค. England beats Mexico
-    r16m5: 'Spain',        // ⏳ 7 ก.ค. Portugal vs Spain
-    r16m6: 'Belgium',        // ⏳ 7 ก.ค. USA vs Belgium
-    r16m7: 'Argentina',        // ⏳ 7 ก.ค. Argentina vs Egypt
-    r16m8: 'Switzerland'         // ⏳ 8 ก.ค. Switzerland vs Colombia
+    r16m5: 'Spain',         // ✅ 7 ก.ค. Spain beats Portugal
+    r16m6: 'Belgium',       // ✅ 7 ก.ค. Belgium beats USA
+    r16m7: 'Argentina',     // ✅ 7 ก.ค. Argentina beats Egypt
+    r16m8: 'Switzerland'    // ✅ 8 ก.ค. Switzerland beats Colombia
   },
   QF: {}, SF: {}, Final: {}
 };
@@ -432,62 +439,77 @@ const PLAYERS = [
   { name:'รัฐพงศ์ 1',
     R32:['Canada','Brazil','Germany','Netherlands','Ivory Coast','France','Ecuador','England','Senegal','USA','Spain','Portugal','Algeria','Egypt','Argentina','Colombia'],
     R16:['Morocco','France','Brazil','England','Spain','USA','Argentina','Colombia'],
+    QF:['Morocco', 'Spain', 'Norway', 'Argentina'],
     champion:'Argentina', championRound:'R32' },
   { name:'รัฐพงศ์ 2',
     R32:['Canada','Brazil','Germany','Netherlands','Ivory Coast','France','Ecuador','England','Senegal','USA','Spain','Portugal','Algeria','Egypt','Argentina','Colombia'],
     R16:['Morocco','France','Norway','Mexico','Spain','Belgium','Argentina','Switzerland'],
+    QF:['France', 'Spain', 'England', 'Argentina'],
     champion:'Germany', championRound:'R32' },
   { name:'KY1',
     R32:['Canada','Brazil','Germany','Netherlands','Ivory Coast','France','Mexico','England','Belgium','USA','Spain','Portugal','Switzerland','Egypt','Argentina','Colombia'],
     R16:['Morocco','France','Brazil','Mexico','Spain','USA','Argentina','Switzerland'],
+    QF:['Morocco', 'Spain', 'Norway', 'Argentina'],
     champion:'Argentina', championRound:'R32' },
   { name:'KY2',
     R32:['Canada','Japan','Germany','Morocco','Norway','France','Mexico','England','Belgium','USA','Spain','Portugal','Switzerland','Australia','Argentina','Colombia'],
     R16:['Morocco','France','Brazil','England','Spain','Belgium','Argentina','Colombia'],
+    QF:['France', 'Belgium', 'Norway', 'Switzerland'],
     champion:'France', championRound:'R32' },
   { name:'SUN1',
     R32:['Canada','Japan','Germany','Netherlands','Ivory Coast','France','Mexico','England','Belgium','USA','Spain','Portugal','Switzerland','Egypt','Argentina','Colombia'],
     R16:['Morocco','France','Brazil','Mexico','Spain','USA','Argentina','Colombia'],
+    QF:['France', 'Spain', 'England', 'Argentina'],
     champion:'Argentina', championRound:'R32' },
   { name:'SUN2',
     R32:['Canada','Brazil','Germany','Netherlands','Ivory Coast','France','Mexico','England','Belgium','USA','Spain','Portugal','Switzerland','Egypt','Argentina','Colombia'],
     R16:['Morocco','France','Brazil','Mexico','Spain','USA','Argentina','Colombia'],
+    QF:['Morocco', 'Spain', 'Norway', 'Argentina'],
     champion:'Brazil', championRound:'R16' },
   { name:'Mod winning 1',
     R32:['Canada','Brazil','Germany','Netherlands','Norway','France','Mexico','England','Belgium','USA','Spain','Portugal','Switzerland','Australia','Argentina','Colombia'],
     R16:['Canada','France','Brazil','Mexico','Spain','USA','Argentina','Switzerland'],
+    QF:['France', 'Spain', 'Norway', 'Argentina'],
     champion:'Spain', championRound:'R32' },
   { name:'Mod winning 2',
     R32:['Canada','Brazil','Germany','Netherlands','Norway','France','Mexico','England','Belgium','USA','Spain','Portugal','Switzerland','Australia','Argentina','Colombia'],
     R16:['Canada','France','Brazil','England','Portugal','USA','Argentina','Switzerland'],
+    QF:['France', 'Spain', 'Norway', 'Argentina'],
     champion:'France', championRound:'R32' },
   { name:'Direk',
     R32:['Canada','Brazil','Germany','Netherlands','Norway','France','Mexico','England','Senegal','USA','Spain','Portugal','Switzerland','Egypt','Argentina','Colombia'],
     R16:['Canada','France','Norway','England','Spain','Belgium','Argentina','Switzerland'],
+    QF:['France', 'Spain', 'England', 'Switzerland'],
     champion:'France', championRound:'R32' },
   { name:'Arsom3',
     R32:['Canada','Brazil','Germany','Netherlands','Ivory Coast','France','Mexico','England','Belgium','USA','Spain','Portugal','Switzerland','Egypt','Argentina','Colombia'],
     R16:['Morocco','France','Brazil','England','Spain','Belgium','Argentina','Switzerland'],
+    QF:['France', 'Spain', 'England', 'Argentina'],
     champion:'Spain', championRound:'R32' },
   { name:'เด่น',
     R32:['Canada','Brazil','Germany','Netherlands','Ivory Coast','France','Mexico','England','Senegal','USA','Spain','Portugal','Switzerland','Australia','Argentina','Colombia'],
     R16:['Morocco','France','Norway','England','Spain','USA','Argentina','Colombia'],
+    QF:['Morocco', 'Belgium', 'England', 'Argentina'],
     champion:'Argentina', championRound:'R32' },
   { name:'Chaidet01',
     R32:['Canada','Brazil','Germany','Netherlands','Norway','France','Mexico','England','Belgium','USA','Spain','Portugal','Switzerland','Australia','Argentina','Colombia'],
     R16:['Morocco','France','Brazil','England','Spain','Belgium','Argentina','Colombia'],
+    QF:['France', 'Belgium', 'England', 'Argentina'],
     champion:'Argentina', championRound:'R32' },
   { name:'Chaidet02',
     R32:['Canada','Japan','Germany','Netherlands','Ivory Coast','France','Mexico','England','Belgium','USA','Spain','Portugal','Algeria','Egypt','Argentina','Colombia'],
     R16:['Morocco','France','Brazil','England','Spain','USA','Argentina','Colombia'],
+    QF:['France', 'Spain', 'Norway', 'Argentina'],
     champion:'England', championRound:'R32' },
   { name:'ภัทราวุธ 1',
     R32:['South Africa','Brazil','Germany','Netherlands','Norway','France','Mexico','England','Belgium','USA','Spain','Portugal','Algeria','Australia','Argentina','Colombia'],
     R16:['Morocco','France','Norway','England','Spain','Belgium','Argentina','Switzerland'],
+    QF:['France', 'Spain', 'England', 'Argentina'],
     champion:'Spain', championRound:'R32' },
   { name:'ภัทราวุธ 2',
     R32:['South Africa','Brazil','Germany','Netherlands','Norway','France','Mexico','England','Belgium','USA','Spain','Portugal','Switzerland','Australia','Argentina','Colombia'],
     R16:['Morocco','France','Norway','England','Spain','Belgium','Argentina','Switzerland'],
+    QF:['France', 'Spain', 'England', 'Argentina'],
     champion:'France', championRound:'R32' }
 ];
 
@@ -548,6 +570,30 @@ function computePlayerScore(player) {
     total += r16Pts;
   }
 
+  const rpQF = ROUND_POINTS.QF;
+  let qfPts = 0, qfCorrect = 0, qfUpsets = 0, qfPerfOK = true, qfPerfect = false;
+  const qfDetail = [];
+  if (player.QF) {
+    QF_MATCHES.forEach((m, i) => {
+      const result = RESULTS.QF[m.id];
+      const pick = player.QF[i];
+      let pts = 0, status = 'pending';
+      if (result) {
+        if (pick === result) {
+          pts = rpQF.base; qfCorrect++;
+          const loser = result === m.teamA ? m.teamB : m.teamA;
+          if (isUpset(result, loser)) { pts += rpQF.upset; qfUpsets++; status = 'correct_upset'; }
+          else { status = 'correct'; }
+        } else { status = 'wrong'; qfPerfOK = false; }
+        qfPts += pts;
+      } else { qfPerfOK = false; }
+      qfDetail.push({ match: m, pick, result, pts, status });
+    });
+    const qfAllIn = QF_MATCHES.every(m => !!RESULTS.QF[m.id]);
+    if (qfAllIn && qfPerfOK && qfCorrect === 4) { qfPts *= 2; qfPerfect = true; }
+    total += qfPts;
+  }
+
   let champPts = 0;
   if (player.champion && RESULTS.Final && RESULTS.Final.winner === player.champion)
     champPts = CHAMPION_BONUS[player.championRound] || 0;
@@ -558,6 +604,7 @@ function computePlayerScore(player) {
     breakdown: {
       r32: { pts: r32Pts, correct: r32Correct, upsets: r32Upsets, detail: r32Detail, perfect: r32Perfect },
       r16: { pts: r16Pts, correct: r16Correct, upsets: r16Upsets, detail: r16Detail, perfect: r16Perfect },
+      qf:  { pts: qfPts,  correct: qfCorrect,  upsets: qfUpsets,  detail: qfDetail,  perfect: qfPerfect  },
       champion: { team: player.champion, round: player.championRound, pts: champPts },
       perfectRound: r32Perfect
     }
@@ -595,6 +642,7 @@ function switchTab(id) {
 // LEADERBOARD
 function buildLeaderboard() {
   const r16Started = Object.values(RESULTS.R16).some(v => v !== null);
+  const qfStarted  = Object.values(RESULTS.QF).some(v => v !== null);
   const scores = PLAYERS.map(p => {
     const sc = computePlayerScore(p);
     return { name:p.name, champion:p.champion, championRound:p.championRound, ...sc };
@@ -778,6 +826,69 @@ function buildR16Tab() {
 }
 
 // PENDING ROUND
+function buildQFTab() {
+  const done = QF_MATCHES.filter(m => RESULTS.QF[m.id]).length;
+  const upsetCount = QF_MATCHES.filter(m => {
+    const r = RESULTS.QF[m.id];
+    return r && isUpset(r, r===m.teamA ? m.teamB : m.teamA);
+  }).length;
+
+  const cards = QF_MATCHES.map((m, i) => {
+    const result = RESULTS.QF[m.id];
+    const rA = getRank(m.teamA), rB = getRank(m.teamB);
+    const favA = rA < rB;
+    const upset = result ? isUpset(result, result===m.teamA ? m.teamB : m.teamA) : false;
+
+    const picksA = PLAYERS.filter(p => p.QF && p.QF[i] === m.teamA).length;
+    const picksB = PLAYERS.filter(p => p.QF && p.QF[i] === m.teamB).length;
+    const total  = picksA + picksB;
+    const pctA   = total ? Math.round(picksA/total*100) : 50;
+
+    const statusBadge = !result
+      ? `<span class="result-badge rPending">PENDING</span>`
+      : `<span class="result-badge rFinal">FINAL${upset?' 🔥':''}</span>`;
+
+    const clsA = result ? (result===m.teamA ? 'winner':'loser') : '';
+    const clsB = result ? (result===m.teamB ? 'winner':'loser') : '';
+    const cardCls = result ? (upset ? 'is-upset' : 'is-final') : '';
+
+    return `
+    <div class="match-card ${cardCls}">
+      <div class="match-header">
+        <span class="match-num-badge">QFM${m.num}</span>
+        <span class="match-date">📅 ${m.date}</span>
+        ${statusBadge}
+      </div>
+      ${upset ? `<div class="upset-ribbon">⚡ UPSET — +10 Bonus Point!</div>` : ''}
+      <div class="match-teams">
+        <div class="team-block">
+          <div class="team-name ${clsA}">${m.teamA}</div>
+          <div class="team-rank">FIFA #${rA} ${favA?'<span class="team-fav">★ FAV</span>':''}</div>
+        </div>
+        <span class="vs-divider">VS</span>
+        <div class="team-block" style="text-align:right">
+          <div class="team-name ${clsB}">${m.teamB}</div>
+          <div class="team-rank">${!favA?'<span class="team-fav">★ FAV</span>':''} FIFA #${rB}</div>
+        </div>
+      </div>
+      <div class="pick-bar-label">
+        <span>${m.teamA} <strong style="color:var(--text)">${picksA}</strong> คน</span>
+        <span><strong style="color:var(--text)">${picksB}</strong> คน ${m.teamB}</span>
+      </div>
+      <div class="pick-bar-track"><div class="pick-bar-fill" style="width:${pctA}%"></div></div>
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="stat-row">
+    <div class="stat-card"><div class="stat-val">${done}<span style="font-size:.9rem;color:var(--muted)">/4</span></div><div class="stat-lbl">นัดที่จบแล้ว</div></div>
+    <div class="stat-card"><div class="stat-val">${4-done}</div><div class="stat-lbl">นัดที่รอผล</div></div>
+    <div class="stat-card"><div class="stat-val">${upsetCount}</div><div class="stat-lbl">⚡ Upsets!</div></div>
+    <div class="stat-card"><div class="stat-val">${PLAYERS.length}</div><div class="stat-lbl">ผู้เล่น</div></div>
+  </div>
+  <div class="match-grid">${cards}</div>`;
+}
+
 function buildPendingRound(name) {
   return `<div class="pending-round">
     <div class="icon">⚽</div>
@@ -836,18 +947,42 @@ function buildPlayerTab(player) {
     </div>`;
   }).join('') : '<div style="color:var(--muted2);padding:12px">ไม่มีข้อมูล R16</div>';
 
+  const qfPicks = player.QF ? QF_MATCHES.map((m, i) => {
+    const result = RESULTS.QF[m.id];
+    const pick = player.QF[i];
+    const d = sc.breakdown.qf ? sc.breakdown.qf.detail[i] : null;
+    let icon='⏳', cls='pending', ptsStr='';
+    if (result) {
+      if (pick === result) {
+        icon = isUpset(result, result===m.teamA?m.teamB:m.teamA) ? '⚡' : '✅';
+        cls = 'correct'; ptsStr = d ? `+${d.pts}` : '';
+      } else { icon='❌'; cls='wrong'; }
+    }
+    return `
+    <div class="pick-row ${cls}">
+      <span class="pick-icon">${icon}</span>
+      <div style="flex:1;min-width:0">
+        <div class="pick-match">QF คู่ที่ ${m.num}: ${m.teamA} vs ${m.teamB}</div>
+        <div class="pick-team">${pick}</div>
+      </div>
+      ${ptsStr ? `<span class="pick-pts">${ptsStr}</span>` : ''}
+    </div>`;
+  }).join('') : '<div style="color:var(--muted2);padding:12px">ไม่มีข้อมูล QF</div>';
+
   const champLabel = player.champion ? player.champion + ' (' + player.championRound + ')' : '—';
   const champStatus = !player.champion ? '—' :
     (RESULTS.Final && RESULTS.Final.winner === player.champion) ? `✅ +${CHAMPION_BONUS[player.championRound]}` :
     (RESULTS.Final && RESULTS.Final.winner) ? '❌' : '⏳';
 
   const r16Started = Object.values(RESULTS.R16).some(v => v !== null);
+  const qfStarted  = Object.values(RESULTS.QF).some(v => v !== null);
+  const qf = sc.breakdown.qf || { pts:0, correct:0, upsets:0, detail:[], perfect:false };
 
   return `
   <div class="stat-row">
     <div class="stat-card"><div class="stat-val">${sc.total}</div><div class="stat-lbl">คะแนนรวม</div></div>
     <div class="stat-card"><div class="stat-val">${r32.correct}<span style="font-size:.9rem;color:var(--muted)">/16</span></div><div class="stat-lbl">ถูกใน R32</div></div>
-    <div class="stat-card"><div class="stat-val">${r16Started ? r16.pts : r32.pts}</div><div class="stat-lbl">แต้ม ${r16Started ? 'R16' : 'R32'}</div></div>
+    <div class="stat-card"><div class="stat-val">${qfStarted ? qf.pts : r16Started ? r16.pts : r32.pts}</div><div class="stat-lbl">แต้ม ${qfStarted ? 'QF' : r16Started ? 'R16' : 'R32'}</div></div>
     <div class="stat-card"><div class="stat-val" style="font-size:.85rem">${champLabel}</div><div class="stat-lbl">ล็อคแชมป์ ${champStatus}</div></div>
   </div>
   <div class="card">
@@ -867,9 +1002,18 @@ function buildPlayerTab(player) {
     <div class="card-title">คำทาย Round of 16</div>
     <div class="player-picks-grid">${r16Picks}</div>
   </div>` : ''}
+  ${player.QF ? `
+  ${sc.breakdown.qf.perfect ? `
+  <div style="background:linear-gradient(90deg,rgba(0,230,118,.12),rgba(255,193,7,.08));border:1px solid rgba(0,230,118,.3);border-radius:10px;padding:12px 18px;text-align:center;margin-bottom:16px">
+    <span style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.1em;color:var(--green)">🎯 PERFECT QF! ×2 คะแนน</span>
+  </div>` : ''}
+  <div class="card">
+    <div class="card-title">คำทาย Quarter-Finals</div>
+    <div class="player-picks-grid">${qfPicks}</div>
+  </div>` : ''}
   <div class="card">
     <div class="card-title">รอบถัดไป</div>
-    <div class="pending-round" style="padding:24px"><div class="desc">QF–Final จะเปิดหลัง R16 จบ</div></div>
+    <div class="pending-round" style="padding:24px"><div class="desc">SF–Final จะเปิดหลัง QF จบ</div></div>
   </div>`;
 }
 
@@ -881,7 +1025,7 @@ function init() {
     { id:'lb',    html: buildLeaderboard },
     { id:'r32',   html: buildR32Tab },
     { id:'r16',   html: buildR16Tab },
-    { id:'qf',    html: () => buildPendingRound('QUARTERFINALS') },
+    { id:'qf',    html: buildQFTab },
     { id:'sf',    html: () => buildPendingRound('SEMIFINALS') },
     { id:'final', html: () => buildPendingRound('GRAND FINAL') }
   ];
@@ -893,9 +1037,11 @@ function init() {
   const badge = document.getElementById('currentRoundBadge');
   const r32Done = R32_MATCHES.filter(m => RESULTS.R32[m.id]).length;
   const r16Done = R16_MATCHES.filter(m => RESULTS.R16[m.id]).length;
+  const qfDone  = QF_MATCHES.filter(m => RESULTS.QF[m.id]).length;
   if (r32Done < 16) badge.textContent = `🔴 LIVE · R32 ${r32Done}/16`;
   else if (r16Done < 8) badge.textContent = `🔴 LIVE · R16 ${r16Done}/8`;
-  else badge.textContent = '✅ R16 COMPLETE';
+  else if (qfDone < 4) badge.textContent = `🔴 LIVE · QF ${qfDone}/4`;
+  else badge.textContent = '✅ QF COMPLETE';
 }
 
 init();
