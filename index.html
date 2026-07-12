@@ -301,7 +301,7 @@
     <span class="header-badge" id="currentRoundBadge">🔴 LIVE · R16</span>
   </div>
 </div>
-<div class="round-banner">⚡&nbsp; QUARTER-FINALS &nbsp;·&nbsp; 10–12 ก.ค. 2026 &nbsp;⚡</div>
+<div class="round-banner">✅&nbsp; QF COMPLETE &nbsp;·&nbsp; รอบรองชนะเลิศ (SF) กำลังมาถึง &nbsp;✅</div>
 
 <!-- TABS -->
 <div class="tab-nav" id="mainTabNav"></div>
@@ -429,7 +429,7 @@ const RESULTS = {
     r16m7: 'Argentina',     // ✅ 7 ก.ค. Argentina beats Egypt
     r16m8: 'Switzerland'    // ✅ 8 ก.ค. Switzerland beats Colombia
   },
-  QF: { qfm1:'France', qfm2:'Spain' }, SF: {}, Final: {}
+  QF: { qfm1:'France', qfm2:'Spain', qfm3:'England', qfm4:'Argentina' }, SF: {}, Final: {}
 };
 
 // ============================================================
@@ -639,14 +639,213 @@ function switchTab(id) {
   document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tc_'+id));
 }
 
+// MAX POSSIBLE SCORE (for elimination check)
+function computeMaxPossibleScore(player) {
+  const sc   = computePlayerScore(player);
+  const nonQF = sc.total - sc.breakdown.qf.pts;
+
+  // QF: locked results use actual; TBD uses pick as best-case
+  const rpQF = ROUND_POINTS.QF;
+  let maxQFBase = 0, perfOK = true, correctCount = 0;
+  QF_MATCHES.forEach((m, i) => {
+    const result = RESULTS.QF[m.id];
+    const pick   = (player.QF || [])[i];
+    if (result) {
+      if (pick === result) {
+        const loser = result === m.teamA ? m.teamB : m.teamA;
+        maxQFBase += isUpset(result, loser) ? rpQF.base + rpQF.upset : rpQF.base;
+        correctCount++;
+      } else { perfOK = false; }
+    } else if (pick) {
+      const loser = pick === m.teamA ? m.teamB : m.teamA;
+      maxQFBase += isUpset(pick, loser) ? rpQF.base + rpQF.upset : rpQF.base;
+      correctCount++;
+    } else { perfOK = false; }
+  });
+  const maxQF = (perfOK && correctCount === QF_MATCHES.length) ? maxQFBase * 2 : maxQFBase;
+
+  // SF: use actual picks if submitted; else assume 2 matches all-correct + upsets + perfect
+  const rpSF = ROUND_POINTS.SF;
+  let maxSF;
+  if (player.SF && player.SF.length > 0 && typeof SF_MATCHES !== 'undefined') {
+    let sfBase = 0, sfPerfOK = true, sfCorrect = 0;
+    SF_MATCHES.forEach((m, i) => {
+      const result = RESULTS.SF && RESULTS.SF[m.id];
+      const pick   = player.SF[i];
+      if (result) {
+        if (pick === result) {
+          const loser = result === m.teamA ? m.teamB : m.teamA;
+          sfBase += isUpset(result, loser) ? rpSF.base + rpSF.upset : rpSF.base;
+          sfCorrect++;
+        } else { sfPerfOK = false; }
+      } else if (pick) {
+        const loser = pick === m.teamA ? m.teamB : m.teamA;
+        sfBase += isUpset(pick, loser) ? rpSF.base + rpSF.upset : rpSF.base;
+        sfCorrect++;
+      } else { sfPerfOK = false; }
+    });
+    maxSF = (sfPerfOK && sfCorrect === SF_MATCHES.length) ? sfBase * 2 : sfBase;
+  } else {
+    maxSF = (rpSF.base + rpSF.upset) * 2 * 2; // 2 SF matches, full best-case
+  }
+
+  // Final: use actual pick if submitted; else assume 1 match best-case
+  const rpFin = ROUND_POINTS.Final;
+  let maxFinal;
+  if (player.Final && player.Final.length > 0 && typeof FINAL_MATCHES !== 'undefined') {
+    let finBase = 0;
+    FINAL_MATCHES.forEach((m, i) => {
+      const result = RESULTS.Final && RESULTS.Final[m.id];
+      const pick   = player.Final[i];
+      if (result) {
+        if (pick === result) {
+          const loser = result === m.teamA ? m.teamB : m.teamA;
+          finBase = isUpset(result, loser) ? rpFin.base + rpFin.upset : rpFin.base;
+        }
+      } else if (pick) {
+        const loser = pick === m.teamA ? m.teamB : m.teamA;
+        finBase = isUpset(pick, loser) ? rpFin.base + rpFin.upset : rpFin.base;
+      }
+    });
+    maxFinal = finBase * 2; // single match — perfect if correct
+  } else {
+    maxFinal = (rpFin.base + rpFin.upset) * 2;
+  }
+
+  // Champion bonus: only if team not yet eliminated
+  let maxChamp = 0;
+  if (player.champion) {
+    const eliminated = new Set();
+    QF_MATCHES.forEach(m => {
+      const w = RESULTS.QF[m.id];
+      if (w) eliminated.add(w === m.teamA ? m.teamB : m.teamA);
+    });
+    R16_MATCHES.forEach(m => {
+      const w = RESULTS.R16[m.id];
+      if (w) eliminated.add(w === m.teamA ? m.teamB : m.teamA);
+    });
+    if (typeof SF_MATCHES !== 'undefined') {
+      SF_MATCHES.forEach(m => {
+        const w = RESULTS.SF && RESULTS.SF[m.id];
+        if (w) eliminated.add(w === m.teamA ? m.teamB : m.teamA);
+      });
+    }
+    if (!eliminated.has(player.champion)) {
+      maxChamp = CHAMPION_BONUS[player.championRound] || 0;
+    }
+  }
+
+  return nonQF + maxQF + maxSF + maxFinal + maxChamp;
+}
+
+// ANALYSIS SECTION (post-QF)
+function buildAnalysisSection() {
+  // Teams eliminated so far (losers of all completed matches)
+  const elimTeams = new Set(['Germany','Brazil','Morocco','Belgium','Norway','Switzerland']);
+  QF_MATCHES.forEach(m => {
+    const w = RESULTS.QF[m.id];
+    if (w) elimTeams.add(w === m.teamA ? m.teamB : m.teamA);
+  });
+  if (typeof SF_MATCHES !== 'undefined') {
+    SF_MATCHES.forEach(m => {
+      const w = RESULTS.SF && RESULTS.SF[m.id];
+      if (w) elimTeams.add(w === m.teamA ? m.teamB : m.teamA);
+    });
+  }
+
+  const leaderScore = Math.max(...PLAYERS.map(p => computePlayerScore(p).total));
+
+  const rows = PLAYERS.map(p => {
+    const sc  = computePlayerScore(p);
+    const maxP = computeMaxPossibleScore(p);
+    const gap  = leaderScore - sc.total;
+    const champAlive = p.champion && !elimTeams.has(p.champion);
+    const perfQF = sc.breakdown.qf && sc.breakdown.qf.perfect;
+    const isElim = maxP <= leaderScore;
+
+    let statusLabel, statusColor;
+    if (isElim) {
+      statusLabel = 'หมดลุ้น'; statusColor = '#e05555';
+    } else if (gap === 0) {
+      statusLabel = 'ผู้นำ 🏆'; statusColor = 'var(--gold)';
+    } else if (gap <= 5) {
+      statusLabel = 'ไล่ตาม 🔥'; statusColor = '#ff8c42';
+    } else if (perfQF && champAlive) {
+      statusLabel = 'ยังมีลุ้น ⚡'; statusColor = '#5fb8ff';
+    } else if (!champAlive) {
+      statusLabel = 'ยากมาก ⚠️'; statusColor = '#e0a020';
+    } else {
+      statusLabel = 'ต้องอาศัยดวง 🎲'; statusColor = '#a0a8c0';
+    }
+
+    return { ...sc, name:p.name, maxP, gap, champAlive, champName:p.champion, champRound:p.championRound, perfQF, isElim, statusLabel, statusColor };
+  }).sort((a,b) => b.total - a.total);
+
+  // Completion state label
+  const qfDone  = QF_MATCHES.every(m => !!RESULTS.QF[m.id]);
+  const sfDone  = typeof SF_MATCHES !== 'undefined' && SF_MATCHES.every(m => RESULTS.SF && RESULTS.SF[m.id]);
+  const finDone = typeof FINAL_MATCHES !== 'undefined' && FINAL_MATCHES.every(m => RESULTS.Final && RESULTS.Final[m.id]);
+  const remainNote = finDone ? 'การแข่งขันจบแล้ว' :
+                     sfDone  ? 'รอรอบชิงชนะเลิศ' :
+                     qfDone  ? 'รอรอบรองชนะเลิศ (SF ยังไม่ได้ส่ง picks)' :
+                               'QF ยังไม่จบ';
+
+  const elimCount = rows.filter(r => r.isElim).length;
+
+  return `
+  <div class="card">
+    <div class="card-title">🔮 วิเคราะห์โอกาสก่อนรอบรองชนะเลิศ</div>
+    <div style="color:var(--muted2);font-size:.78rem;margin-bottom:10px">
+      <strong style="color:var(--accent)">Max</strong> = คะแนนสูงสุดที่เป็นไปได้ หาก SF + Final + แชมป์ถูกหมด &nbsp;·&nbsp;
+      ${elimCount > 0
+        ? `<strong style="color:#e05555">${elimCount} คนหมดลุ้น</strong>`
+        : `<span style="color:#5fb8ff">ยังไม่มีใครหมดลุ้น</span>`}
+      &nbsp;(${remainNote})
+    </div>
+    <table class="lb-table">
+      <thead><tr>
+        <th>#</th><th>ผู้เล่น</th>
+        <th>คะแนน</th><th>ขาดผู้นำ</th><th>Max</th>
+        <th>QF</th><th>แชมป์</th><th>สถานะ</th>
+      </tr></thead>
+      <tbody>
+        ${rows.map((r,i) => `
+        <tr class="${r.isElim ? 'is-elim' : ''}">
+          <td>${i+1}</td>
+          <td><strong>${r.name}</strong></td>
+          <td><span class="pts-big" style="font-size:.95rem">${r.total}</span></td>
+          <td>${r.gap > 0
+            ? `<span style="color:#e05555;font-weight:700">-${r.gap}</span>`
+            : `<span style="color:var(--gold);font-weight:700">—</span>`}</td>
+          <td><span style="color:var(--muted2);font-size:.85rem">${r.maxP}</span></td>
+          <td>${r.perfQF
+            ? `<span style="color:var(--gold);font-size:.75rem;font-weight:700">⭐ Perfect</span>`
+            : `<span style="color:var(--muted2);font-size:.75rem">—</span>`}</td>
+          <td><span style="font-size:.75rem;color:${r.champAlive ? '#5fb8ff' : '#e05555'}">
+            ${r.champAlive ? '✅' : '❌'} ${r.champName||'—'}
+          </span></td>
+          <td><span style="font-size:.75rem;font-weight:700;color:${r.statusColor}">${r.statusLabel}</span></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    <div style="margin-top:10px;font-size:.73rem;color:var(--muted2);line-height:1.7">
+      <strong style="color:var(--accent)">⭐ Perfect QF</strong> = ทาย QF ถูกทุกนัด (×2 คะแนน QF) &nbsp;·&nbsp;
+      <strong style="color:#5fb8ff">แชมป์ ✅</strong> = ทีมที่ล็อคแชมป์ยังอยู่ในทัวร์นาเมนต์ &nbsp;·&nbsp;
+      <strong style="color:#e05555">❌ Germany/Brazil</strong> = ตกรอบก่อน SF → ไม่ได้โบนัสแชมป์
+    </div>
+  </div>`;
+}
+
 // LEADERBOARD
 function buildLeaderboard() {
   const r16Started = Object.values(RESULTS.R16).some(v => v !== null);
   const qfStarted  = Object.values(RESULTS.QF).some(v => v !== null);
   const scores = PLAYERS.map(p => {
     const sc = computePlayerScore(p);
-    return { name:p.name, champion:p.champion, championRound:p.championRound, ...sc };
+    return { name:p.name, champion:p.champion, championRound:p.championRound,
+             maxPossible: computeMaxPossibleScore(p), ...sc };
   }).sort((a,b) => b.total - a.total);
+  const leaderScore = scores[0] ? scores[0].total : 0;
 
   let rankNum = 0, prev = -1;
   scores.forEach((s,i) => { if (s.total !== prev) { rankNum = i+1; prev = s.total; } s.rank = rankNum; });
@@ -665,9 +864,9 @@ function buildLeaderboard() {
       </tr></thead>
       <tbody>
         ${scores.map(s => `
-        <tr class="rank-${s.rank}" onclick="switchTab('p_${s.name}')">
+        <tr class="rank-${s.rank}${s.maxPossible <= leaderScore ? ' is-elim' : ''}" onclick="switchTab('p_${s.name}')">
           <td><span class="rank-num">${rankIcon(s.rank)}</span></td>
-          <td><strong>${s.name}</strong></td>
+          <td><strong>${s.name}</strong>${s.maxPossible <= leaderScore ? '<span class="elim-badge">หมดลุ้น</span>' : ''}</td>
           <td>${s.breakdown.r32.pts}</td>
           <td>${r16Started ? s.breakdown.r16.pts : '<span style="color:var(--muted2)">—</span>'}</td>
           <td>${qfStarted ? s.breakdown.qf.pts : '<span style="color:var(--muted2)">—</span>'}</td>
@@ -694,7 +893,8 @@ function buildLeaderboard() {
         </div>
       `).join('')}
     </div>
-  </div>`;
+  </div>
+  ${buildAnalysisSection()}`;
 }
 
 // R32 TAB
