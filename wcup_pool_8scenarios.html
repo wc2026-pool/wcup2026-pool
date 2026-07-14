@@ -1,0 +1,143 @@
+
+<h2 class="sr-only">WC2026 Knockout Pool — 8 possible outcomes with scores per player</h2>
+
+<div style="padding:.75rem 0;font-family:var(--font-sans)">
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.25rem">
+  <div style="background:var(--surface-1);border:0.5px solid var(--border);border-top:2.5px solid var(--border-warning);border-radius:var(--radius);padding:.625rem .875rem">
+    <div style="font-size:11px;color:var(--text-secondary);margin-bottom:2px">ชนะได้</div>
+    <div style="font-weight:500;font-size:14px">ภัทราวุธ 1</div>
+    <div style="font-size:22px;font-weight:500;color:var(--text-warning)">4<span style="font-size:12px;color:var(--text-secondary);font-weight:400"> / 8 โอกาส</span></div>
+    <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Spain ชนะ SF1 → S5–S8</div>
+  </div>
+  <div style="background:var(--surface-1);border:0.5px solid var(--border);border-top:2.5px solid var(--border-accent);border-radius:var(--radius);padding:.625rem .875rem">
+    <div style="font-size:11px;color:var(--text-secondary);margin-bottom:2px">ชนะได้</div>
+    <div style="font-weight:500;font-size:14px">ภัทราวุธ 2</div>
+    <div style="font-size:22px;font-weight:500;color:var(--text-accent)">3<span style="font-size:12px;color:var(--text-secondary);font-weight:400"> / 8 โอกาส</span></div>
+    <div style="font-size:10px;color:var(--text-muted);margin-top:2px">France ชนะ SF1 + Final → S1–S3</div>
+  </div>
+  <div style="background:var(--surface-1);border:0.5px solid var(--border);border-top:2.5px solid var(--border-success);border-radius:var(--radius);padding:.625rem .875rem">
+    <div style="font-size:11px;color:var(--text-secondary);margin-bottom:2px">ชนะได้</div>
+    <div style="font-weight:500;font-size:14px">SUN1</div>
+    <div style="font-size:22px;font-weight:500;color:var(--text-success)">1<span style="font-size:12px;color:var(--text-secondary);font-weight:400"> / 8 โอกาส</span></div>
+    <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Fra+Arg SF, Argentina แชมป์ → S4</div>
+  </div>
+</div>
+
+<div style="overflow-x:auto;border:0.5px solid var(--border);border-radius:12px">
+<table id="tbl" style="width:100%;border-collapse:collapse;font-size:12px;min-width:580px">
+  <thead>
+    <tr>
+      <th rowspan="2" style="text-align:left;padding:6px 8px 6px 10px;border-right:0.5px solid var(--border);background:var(--surface-1);font-weight:500;font-size:11px;color:var(--text-secondary);min-width:130px;vertical-align:bottom">ผู้เล่น</th>
+      <th colspan="4" style="padding:4px 6px;text-align:center;background:var(--bg-accent);color:var(--text-accent);font-size:11px;font-weight:500;border-right:2px solid var(--border-accent)">⚡ France ชนะ SF1 (upset)</th>
+      <th colspan="4" style="padding:4px 6px;text-align:center;background:var(--bg-warning);color:var(--text-warning);font-size:11px;font-weight:500">Spain ชนะ SF1</th>
+    </tr>
+    <tr id="subHead"></tr>
+  </thead>
+  <tbody id="body"></tbody>
+</table>
+</div>
+
+<p style="font-size:10.5px;color:var(--text-muted);margin-top:.5rem;line-height:1.6">* คะแนนยังไม่รวม Final picks (ยังไม่ส่ง) · ตัวเลขในวงเล็บหลังชื่อ = คะแนนปัจจุบัน · ❌ = ทายแชมป์ทีมตกรอบ · ทาย SF: F=France, S=Spain, E=England, A=Argentina</p>
+</div>
+
+<script>
+const players = [
+  ['ภัทราวุธ2','F+E','France',false,204,[394,344,289,239,239,239,204,204]],
+  ['ภัทราวุธ1','S+E','Spain', false,202,[237,237,202,202,362,312,272,222]],
+  ['Arsom3',   'S+E','Spain', false,149,[184,184,149,149,309,259,219,169]],
+  ['รัฐพงศ์2','S+E','Germany',true, 148,[183,183,148,148,258,258,168,168]],
+  ['SUN1',     'F+A','Argentina',false,127,[162,162,237,287,127,127,147,197]],
+  ['Direk',    'F+E','France', false,104,[294,244,189,139,139,139,104,104]],
+  ['Chaidet01','F+E','Argentina',false,86,[226,226,121,171,121,121,86,136]],
+  ['Mod1',     'S+A','Spain',  false,81, [81,81,101,101,151,101,211,161]],
+  ['Mod2',     'F+A','France', false,81, [166,116,241,191,81,81,101,101]],
+  ['Chaidet02','S+A','England',false,80, [80,130,100,100,100,150,160,160]],
+  ['KY1',      'S+A','Argentina',false,79,[79,79,99,149,99,99,159,209]],
+  ['เด่น',   'F+A','Argentina',false,77,[112,112,187,237,77,77,97,147]],
+  ['SUN2',     'F+A','Brazil', true, 69, [104,104,179,179,69,69,89,89]],
+  ['รัฐพงศ์1','F+A','Argentina',false,68,[103,103,178,228,68,68,88,138]],
+  ['KY2',      'F+E','France', false,66, [256,206,151,101,101,101,66,66]],
+];
+
+const scenarios = [
+  ['S1','FRA','var(--bg-accent)','var(--text-accent)',''],
+  ['S2','ENG','var(--bg-accent)','var(--text-accent)','1px solid var(--border-accent)'],
+  ['S3','FRA','var(--bg-accent)','var(--text-accent)',''],
+  ['S4','ARG','var(--bg-success)','var(--text-success)','2px solid var(--border-accent)'],
+  ['S5','SPA','var(--bg-warning)','var(--text-warning)',''],
+  ['S6','ENG','var(--bg-warning)','var(--text-warning)','1px solid var(--border-warning)'],
+  ['S7','SPA','var(--bg-warning)','var(--text-warning)',''],
+  ['S8','ARG','var(--bg-warning)','var(--text-warning)',''],
+];
+
+const winnerIdx = [0,0,0,4,1,1,1,1];
+const winWrapBg = [
+  'var(--bg-accent)','var(--bg-accent)','var(--bg-accent)','var(--bg-success)',
+  'var(--bg-warning)','var(--bg-warning)','var(--bg-warning)','var(--bg-warning)'
+];
+const winWrapTxt = [
+  'var(--text-accent)','var(--text-accent)','var(--text-accent)','var(--text-success)',
+  'var(--text-warning)','var(--text-warning)','var(--text-warning)','var(--text-warning)'
+];
+
+const colSorted = scenarios.map((_,si) => [...players.map(p=>p[5][si])].sort((a,b)=>b-a));
+
+const sfPalette = {'F+E':'var(--text-accent)','F+A':'var(--text-success)','S+E':'var(--text-warning)','S+A':'var(--text-danger)'};
+
+const subHead = document.getElementById('subHead');
+scenarios.forEach(([label,final,bg,col,br])=>{
+  const th = document.createElement('th');
+  th.style.cssText = `padding:4px 5px;text-align:center;background:${bg};color:${col};font-size:10px;font-weight:500;min-width:46px;${br?'border-right:'+br:''}`;
+  th.innerHTML = `<span style="font-size:11px">🏆${final}</span><br>${label}`;
+  subHead.appendChild(th);
+});
+
+const tbody = document.getElementById('body');
+
+players.forEach(([name,sfp,champ,elim,base,scores], pi)=>{
+  const tr = document.createElement('tr');
+  if(pi%2===1) tr.style.background='var(--surface-1)';
+
+  const champTxt = elim
+    ? `<span style="font-size:9px;color:var(--text-danger);margin-left:3px">${champ}❌</span>`
+    : `<span style="font-size:9px;color:var(--text-muted);margin-left:3px">${champ}</span>`;
+
+  let html=`<td style="text-align:left;padding:5px 6px 5px 10px;border-right:0.5px solid var(--border);background:inherit;white-space:nowrap">
+    <span style="font-weight:500">${name}</span>${champTxt}
+    <br><span style="font-size:10px;color:${sfPalette[sfp]||'var(--text-muted)'};font-weight:500">ทาย: ${sfp}</span><span style="font-size:9px;color:var(--text-muted)"> (${base})</span>
+  </td>`;
+
+  scores.forEach((sc,si)=>{
+    const isWin = winnerIdx[si]===pi;
+    const rank = colSorted[si].indexOf(sc);
+    const [,,bg,col,br] = scenarios[si];
+    const borderR = br ? 'border-right:'+br : '';
+
+    let style,content;
+    if(isWin){
+      style=`background:${winWrapBg[si]};color:${winWrapTxt[si]};font-weight:500;border-radius:3px;${borderR}`;
+      content=`<strong>${sc}</strong>`;
+    } else if(rank===1){
+      style=`color:var(--text-primary);font-weight:500;${borderR}`;
+      content=sc;
+    } else if(rank===2){
+      style=`color:var(--text-secondary);font-weight:500;${borderR}`;
+      content=sc;
+    } else {
+      style=`color:var(--text-muted);${borderR}`;
+      content=sc;
+    }
+    html+=`<td style="text-align:center;padding:4px 5px;${style}">${content}</td>`;
+  });
+
+  tr.innerHTML=html;
+  tbody.appendChild(tr);
+
+  if(pi===4){
+    const sep=document.createElement('tr');
+    sep.innerHTML='<td colspan="9" style="height:1px;background:var(--border);padding:0"></td>';
+    tbody.appendChild(sep);
+  }
+});
+</script>
