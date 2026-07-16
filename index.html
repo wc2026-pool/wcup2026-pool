@@ -383,6 +383,10 @@ const FINAL_MATCHES = [
   { id:'finm1', num:1, date:'19 ก.ค. 03:00', teamA:'Spain', teamB:'Argentina' },
 ];
 
+const THIRD_MATCHES = [
+  { id:'3rdm1', num:1, date:'18 ก.ค. 03:00', teamA:'France', teamB:'England' },
+];
+
 // ============================================================
 // 🏆  RESULTS — อัปเดตตรงนี้เมื่อทราบผล
 // null = ยังไม่แข่ง / 'TeamName' = ทีมที่ชนะ
@@ -438,7 +442,7 @@ const RESULTS = {
     r16m7: 'Argentina',     // ✅ 7 ก.ค. Argentina beats Egypt
     r16m8: 'Switzerland'    // ✅ 8 ก.ค. Switzerland beats Colombia
   },
-  QF: { qfm1:'France', qfm2:'Spain', qfm3:'England', qfm4:'Argentina' }, SF: { sfm1:'Spain', sfm2:'Argentina' }, Final: { finm1:null }
+  QF: { qfm1:'France', qfm2:'Spain', qfm3:'England', qfm4:'Argentina' }, SF: { sfm1:'Spain', sfm2:'Argentina' }, Third: { '3rdm1':null }, Final: { finm1:null }
 };
 
 // ============================================================
@@ -643,6 +647,29 @@ function computePlayerScore(player) {
     total += sfPts;
   }
 
+  // 3rd Place scoring
+  const rp3rd = ROUND_POINTS['3rd'];
+  let thirdPts = 0, thirdCorrect = 0, thirdUpsets = 0;
+  const thirdDetail = [];
+  if (player.Third && typeof THIRD_MATCHES !== 'undefined') {
+    THIRD_MATCHES.forEach((m, i) => {
+      const result = RESULTS.Third && RESULTS.Third[m.id];
+      const pick = player.Third[i];
+      let pts = 0, status = 'pending';
+      if (result) {
+        if (pick === result) {
+          pts = rp3rd.base; thirdCorrect++;
+          const loser = result === m.teamA ? m.teamB : m.teamA;
+          if (isUpset(result, loser)) { pts += rp3rd.upset; thirdUpsets++; status = 'correct_upset'; }
+          else { status = 'correct'; }
+        } else { status = 'wrong'; }
+        thirdPts += pts;
+      }
+      thirdDetail.push({ match: m, pick, result, pts, status });
+    });
+    total += thirdPts;
+  }
+
   // Final scoring
   const rpFin = ROUND_POINTS.Final;
   let finPts = 0, finCorrect = 0, finPerfect = false;
@@ -658,8 +685,7 @@ function computePlayerScore(player) {
           const loser = result === m.teamA ? m.teamB : m.teamA;
           if (isUpset(result, loser)) { pts += rpFin.upset; status = 'correct_upset'; }
           else { status = 'correct'; }
-          finPerfect = true;   // 1 match — perfect if correct
-          pts *= 2;
+          // No perfect round multiplier for Final (pool rules)
         } else { status = 'wrong'; }
         finPts += pts;
       }
@@ -682,7 +708,8 @@ function computePlayerScore(player) {
       r16:     { pts: r16Pts, correct: r16Correct, upsets: r16Upsets, detail: r16Detail, perfect: r16Perfect },
       qf:      { pts: qfPts,  correct: qfCorrect,  upsets: qfUpsets,  detail: qfDetail,  perfect: qfPerfect  },
       sf:      { pts: sfPts,  correct: sfCorrect,  upsets: sfUpsets,  detail: sfDetail,  perfect: sfPerfect   },
-      final:   { pts: finPts, correct: finCorrect, detail: finDetail,  perfect: finPerfect },
+      third:   { pts: thirdPts, correct: thirdCorrect, upsets: thirdUpsets, detail: thirdDetail },
+      final:   { pts: finPts, correct: finCorrect, detail: finDetail },
       champion:{ team: player.champion, round: player.championRound, pts: champPts },
       perfectRound: r32Perfect
     }
@@ -785,9 +812,9 @@ function computeMaxPossibleScore(player) {
         finBase = isUpset(pick, loser) ? rpFin.base + rpFin.upset : rpFin.base;
       }
     });
-    maxFinal = finBase * 2; // single match — perfect if correct
+    maxFinal = finBase; // no perfect round for Final
   } else {
-    maxFinal = (rpFin.base + rpFin.upset) * 2;
+    maxFinal = rpFin.base + rpFin.upset;
   }
 
   // Champion bonus: only if team not yet eliminated
@@ -813,7 +840,13 @@ function computeMaxPossibleScore(player) {
     }
   }
 
-  return nonQF + maxQF + maxSF + maxFinal + maxChamp;
+  // 3rd Place best case
+  const rp3m = ROUND_POINTS['3rd'];
+  const max3rd = (typeof THIRD_MATCHES !== 'undefined' && THIRD_MATCHES.length > 0)
+    ? rp3m.base + rp3m.upset  // 10 — optimistic (picks not yet submitted)
+    : 0;
+
+  return nonQF + maxQF + maxSF + max3rd + maxFinal + maxChamp;
 }
 
 // ANALYSIS SECTION (post-QF)
@@ -918,110 +951,89 @@ function buildAnalysisSection() {
 }
 
 
-// CONTENDERS TABLE — who can still win?
+// CONTENDERS TABLE — scenario analysis (Spain vs Argentina Final)
 function buildContendersTable() {
-  if (!RESULTS.SF || !RESULTS.SF.sfm1) return '';
+  if (!RESULTS.SF || !RESULTS.SF.sfm1 || !RESULTS.SF.sfm2) return '';
+  if (RESULTS.Final && RESULTS.Final.finm1) return '';  // Final done
 
-  const sfm1 = RESULTS.SF.sfm1;
-  const sfm2 = RESULTS.SF.sfm2;
-  const finR = RESULTS.Final && RESULTS.Final.finm1;
+  const sfm1 = RESULTS.SF.sfm1;  // Spain
+  const sfm2 = RESULTS.SF.sfm2;  // Argentina
+  const rp   = ROUND_POINTS.Final;
+  const rp3  = ROUND_POINTS['3rd'];
+  const mx3  = rp3.base + rp3.upset;   // 10
 
-  const sf2TeamA = SF_MATCHES[1].teamA;
-  const sf2TeamB = SF_MATCHES[1].teamB;
-  const sf2Opts  = sfm2 ? [sfm2] : [sf2TeamA, sf2TeamB];
+  const upA = isUpset(sfm1, sfm2);  // Spain vs Argentina → true (upset)
+  const upB = isUpset(sfm2, sfm1);  // Argentina vs Spain → false
+  const mfA = rp.base + (upA ? rp.upset : 0);  // 50
+  const mfB = rp.base + (upB ? rp.upset : 0);  // 30
 
-  const scenarios = [];
-  sf2Opts.forEach(function(sf2) {
-    const finOpts = finR ? [finR] : [sfm1, sf2];
-    finOpts.forEach(function(fin) {
-      const finLoser = fin === sfm1 ? sf2 : sfm1;
-      const finUp    = isUpset(fin, finLoser);
-      const rp       = ROUND_POINTS.Final;
-      const maxFin   = (rp.base + (finUp ? rp.upset : 0)) * 2;
-      scenarios.push({ sf2: sf2, fin: fin, maxFin: maxFin,
-        label: 'SF2:' + sf2 + ' → 🏆' + fin });
-    });
-  });
-
-  if (!scenarios.length) return '';
-
-  function tempScore(player, sf2, fin) {
-    const o2 = RESULTS.SF.sfm2, of2 = RESULTS.Final.finm1;
-    RESULTS.SF.sfm2 = sf2; RESULTS.Final.finm1 = fin;
-    const t = computePlayerScore(player).total;
-    RESULTS.SF.sfm2 = o2; RESULTS.Final.finm1 = of2;
-    return t;
+  function withFin(fin, fn) {
+    var old = RESULTS.Final.finm1;
+    RESULTS.Final.finm1 = fin;
+    var r = fn();
+    RESULTS.Final.finm1 = old;
+    return r;
   }
 
-  const curMap = {};
-  PLAYERS.forEach(function(p) { curMap[p.name] = computePlayerScore(p).total; });
-
-  const leader = PLAYERS.reduce(function(best, p) {
-    return curMap[p.name] > curMap[best.name] ? p : best;
-  }, PLAYERS[0]);
-
-  const pData = PLAYERS.map(function(p) {
-    const curScore = curMap[p.name];
-    let maxPossible = 0, canWin = false;
-    const winLabels = [];
-    scenarios.forEach(function(sc) {
-      const myBase   = tempScore(p, sc.sf2, sc.fin);
-      const myMax    = myBase + sc.maxFin;
-      const leadBase = (p.name === leader.name) ? myBase : tempScore(leader, sc.sf2, sc.fin);
-      if (myMax > maxPossible) maxPossible = myMax;
-      if (myMax > leadBase) { canWin = true; winLabels.push(sc.label); }
-    });
-    return { p: p, name: p.name, curScore: curScore, maxPossible: maxPossible,
-             canWin: canWin, winLabels: winLabels };
+  var rows = PLAYERS.map(function(p) {
+    var bA = withFin(sfm1, function(){ return computePlayerScore(p).total; });
+    var bB = withFin(sfm2, function(){ return computePlayerScore(p).total; });
+    var cf = p.champion === sfm1 ? '🇪🇸' : p.champion === sfm2 ? '🇦🇷' : '❌';
+    return { name: p.name, champ: p.champion||'—', cf: cf,
+             bA: bA, bB: bB, mA: bA+mfA+mx3, mB: bB+mfB+mx3 };
   });
 
-  pData.sort(function(a, b) {
-    if (a.canWin !== b.canWin) return a.canWin ? -1 : 1;
-    return b.curScore - a.curScore;
-  });
+  var floorA = rows.reduce(function(m,r){ return Math.max(m,r.bA); }, 0);
+  var floorB = rows.reduce(function(m,r){ return Math.max(m,r.bB); }, 0);
 
-  const contenders = pData.filter(function(d) { return d.canWin; });
-  const elim       = pData.filter(function(d) { return !d.canWin; });
+  var byA = rows.slice().sort(function(a,b){ return (b.mA-a.mA)||(b.bA-a.bA); });
+  var byB = rows.slice().sort(function(a,b){ return (b.mB-a.mB)||(b.bB-a.bB); });
 
-  const sfDoneCount = SF_MATCHES.filter(function(m) { return RESULTS.SF && RESULTS.SF[m.id]; }).length;
+  var ri = function(i){ return i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.'; };
 
-  const contenderCards = contenders.map(function(d) {
-    const isLeader = d.p.name === leader.name;
-    const bord = isLeader ? '2px solid var(--gold)' : '1px solid var(--border)';
-    const badge = isLeader
-      ? '<span style="display:inline-block;background:var(--gold);color:#000;font-size:.62rem;padding:1px 5px;border-radius:3px;font-weight:700;margin-left:5px">ผู้นำ</span>'
-      : '';
-    const condHtml = (!isLeader && d.winLabels.length)
-      ? '<div style="font-size:.67rem;color:var(--muted2);margin-top:5px;line-height:1.55">'
-        + d.winLabels.join('<br>') + '</div>'
-      : '';
-    return '<div style="border:' + bord + ';border-radius:8px;padding:8px 12px;min-width:118px;flex:0 0 auto;background:var(--card)">'
-         + '<div style="font-size:.87rem;font-weight:700">' + d.name + badge + '</div>'
-         + '<div style="font-size:.73rem;color:var(--muted2);margin-top:2px">ปัจจุบัน: <strong style="color:var(--accent)">' + d.curScore + '</strong></div>'
-         + '<div style="font-size:.73rem;color:var(--muted2)">สูงสุด: <strong>' + d.maxPossible + '</strong></div>'
-         + condHtml + '</div>';
-  }).join('');
+  function scenTable(sorted, keyM, keyB, floor) {
+    return '<table class="lb-table" style="font-size:.82rem;margin-bottom:4px">'
+      + '<thead><tr><th>#</th><th>ผู้เล่น</th><th>ฐาน+โบนัสแชมป์</th><th>สูงสุด*</th><th>แชมป์</th></tr></thead>'
+      + '<tbody>' + sorted.map(function(r,i){
+          var isElim = r[keyM] < floor;
+          var isLd   = (i === 0);
+          return '<tr class="'+(isElim?'is-elim':isLd?'rank-1':'')+'">'
+            + '<td>'+ri(i)+'</td>'
+            + '<td><strong>'+r.name+'</strong>'+(isElim?'<span class="elim-badge">หมดลุ้น</span>':'')+' </td>'
+            + '<td>'+r[keyB]+'</td>'
+            + '<td><strong style="color:'+(isLd?'var(--gold)':'var(--fg)')+'">'+r[keyM]+'</strong></td>'
+            + '<td style="font-size:.73rem">'+r.cf+' '+r.champ+'</td>'
+            + '</tr>';
+        }).join('')
+      + '</tbody></table>';
+  }
 
-  const elimChips = elim.map(function(d) {
-    return '<div style="background:rgba(224,85,85,.15);border-radius:5px;padding:3px 9px;font-size:.74rem">'
-         + '<strong>' + d.name + '</strong>'
-         + '<span style="color:var(--muted2);margin-left:3px">(max ' + d.maxPossible + ')</span>'
-         + '</div>';
-  }).join('');
+  var spChamps = PLAYERS.filter(function(p){ return p.champion===sfm1; }).map(function(p){ return p.name; });
+  var arChamps = PLAYERS.filter(function(p){ return p.champion===sfm2; }).map(function(p){ return p.name; });
 
   return '<div class="card">'
-    + '<div class="card-title">⚡ สรุปผู้ที่ยังมีลุ้น — SF ' + sfDoneCount + '/' + SF_MATCHES.length + ' นัดจบ</div>'
-    + '<div style="color:var(--muted2);font-size:.76rem;margin-bottom:11px">'
-    + 'คะแนนสูงสุด = สมมติทาย Final ถูก (picks ยังไม่ได้ส่ง) &nbsp;·&nbsp;'
-    + '<strong style="color:#5fb8ff">' + contenders.length + ' คน</strong> ยังมีลุ้น &nbsp;·&nbsp;'
-    + '<strong style="color:#e05555">' + elim.length + ' คน</strong> หมดลุ้นแน่นอน'
-    + '</div>'
-    + '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px">' + contenderCards + '</div>'
-    + '<div style="background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.3);border-radius:8px;padding:9px 12px">'
-    + '<div style="font-size:.75rem;font-weight:700;color:#e05555;margin-bottom:7px">หมดลุ้น ' + elim.length + ' คน (คะแนนสูงสุดไม่พอแม้ทาย Final ถูก)</div>'
-    + '<div style="display:flex;flex-wrap:wrap;gap:7px">' + elimChips + '</div>'
-    + '</div>'
-    + '</div>';
+    + '<div class="card-title">🔮 วิเคราะห์โอกาส — Grand Final 2 Scenarios</div>'
+    + '<div style="color:var(--muted2);font-size:.76rem;margin-bottom:12px">'
+    + 'SF จบครบ · รอผล <strong>คู่ชิงที่ 3</strong> (18 ก.ค.) + <strong>Grand Final</strong> (19 ก.ค.)</div>'
+
+    + '<div style="font-size:.92rem;font-weight:700;color:#5b9cf6;margin-bottom:4px">'
+    + '🇪🇸 Scenario A — Spain ชนะ Upset! &nbsp;'
+    + '<span style="font-size:.75rem;font-weight:400;color:var(--muted2)">Final สูงสุด +'+mfA+' pts</span></div>'
+    + '<div style="font-size:.73rem;color:var(--muted2);margin-bottom:7px">'
+    + '🏅 โบนัสแชมป์ +50: '+spChamps.join(', ')+'</div>'
+    + scenTable(byA,'mA','bA',floorA)
+
+    + '<div style="font-size:.92rem;font-weight:700;color:#f6b93b;margin:14px 0 4px">'
+    + '🇦🇷 Scenario B — Argentina ชนะ &nbsp;'
+    + '<span style="font-size:.75rem;font-weight:400;color:var(--muted2)">Final +'+mfB+' pts</span></div>'
+    + '<div style="font-size:.73rem;color:var(--muted2);margin-bottom:7px">'
+    + '🏅 โบนัสแชมป์ +50: '+arChamps.join(', ')+'</div>'
+    + scenTable(byB,'mB','bB',floorB)
+
+    + '<div style="margin-top:10px;font-size:.72rem;color:var(--muted2);line-height:1.8">'
+    + '<strong>ฐาน+โบนัสแชมป์</strong> = คะแนนปัจจุบันรวมโบนัสแชมป์ (ถ้าทีมนั้นชนะ) &nbsp;·&nbsp; '
+    + '<strong>สูงสุด*</strong> = ฐาน + ทาย Final ถูก (+'+mfA+'/+'+mfB+') + ทาย 3rd ถูก+Upset (+'+mx3+') — สมมติส่ง picks ถูกทั้งหมด'
+    + '</div></div>';
 }
 
 // LEADERBOARD
