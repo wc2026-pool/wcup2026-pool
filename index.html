@@ -822,12 +822,16 @@ function computeMaxPossibleScore(player) {
   let maxChamp = 0;
   if (player.champion) {
     const eliminated = new Set();
-    QF_MATCHES.forEach(m => {
-      const w = RESULTS.QF[m.id];
+    R32_MATCHES.forEach(m => {
+      const w = RESULTS.R32[m.id];
       if (w) eliminated.add(w === m.teamA ? m.teamB : m.teamA);
     });
     R16_MATCHES.forEach(m => {
       const w = RESULTS.R16[m.id];
+      if (w) eliminated.add(w === m.teamA ? m.teamB : m.teamA);
+    });
+    QF_MATCHES.forEach(m => {
+      const w = RESULTS.QF[m.id];
       if (w) eliminated.add(w === m.teamA ? m.teamB : m.teamA);
     });
     if (typeof SF_MATCHES !== 'undefined') {
@@ -856,10 +860,44 @@ function computeMaxPossibleScore(player) {
   return nonQF + maxQF + maxSF + max3rd + maxFinal + maxChamp;
 }
 
+
+// SCENARIO-BASED ELIMINATION
+// A player can win only if they finish #1 in at least one possible Final outcome.
+function canPlayerWin(player) {
+  const finalResult = RESULTS.Final && RESULTS.Final.finm1;
+
+  if (finalResult) {
+    // Final is decided — is this player currently #1?
+    const myScore  = computePlayerScore(player).total;
+    const topScore = Math.max(...PLAYERS.map(p => computePlayerScore(p).total));
+    return myScore >= topScore;
+  }
+
+  // Final TBD — try each possible winner
+  if (typeof FINAL_MATCHES === 'undefined' || !FINAL_MATCHES.length) return true;
+  const m = FINAL_MATCHES[0];
+  for (const winner of [m.teamA, m.teamB]) {
+    RESULTS.Final.finm1 = winner;
+    const myScore  = computePlayerScore(player).total;
+    const topScore = Math.max(...PLAYERS.map(p => computePlayerScore(p).total));
+    RESULTS.Final.finm1 = null;
+    if (myScore >= topScore) return true;
+  }
+  return false;
+}
+
 // ANALYSIS SECTION (post-QF)
 function buildAnalysisSection() {
   // Teams eliminated so far (losers of all completed matches)
-  const elimTeams = new Set(['Germany','Brazil','Morocco','Belgium','Norway','Switzerland']);
+  const elimTeams = new Set();
+  R32_MATCHES.forEach(m => {
+    const w = RESULTS.R32[m.id];
+    if (w) elimTeams.add(w === m.teamA ? m.teamB : m.teamA);
+  });
+  R16_MATCHES.forEach(m => {
+    const w = RESULTS.R16[m.id];
+    if (w) elimTeams.add(w === m.teamA ? m.teamB : m.teamA);
+  });
   QF_MATCHES.forEach(m => {
     const w = RESULTS.QF[m.id];
     if (w) elimTeams.add(w === m.teamA ? m.teamB : m.teamA);
@@ -879,7 +917,7 @@ function buildAnalysisSection() {
     const gap  = leaderScore - sc.total;
     const champAlive = p.champion && !elimTeams.has(p.champion);
     const perfQF = sc.breakdown.qf && sc.breakdown.qf.perfect;
-    const isElim = maxP <= leaderScore;
+    const isElim = !canPlayerWin(p);
 
     let statusLabel, statusColor;
     if (isElim) {
@@ -1079,7 +1117,7 @@ function buildLeaderboard() {
   const scores = PLAYERS.map(p => {
     const sc = computePlayerScore(p);
     return { name:p.name, champion:p.champion, championRound:p.championRound,
-             maxPossible: computeMaxPossibleScore(p), ...sc };
+             maxPossible: computeMaxPossibleScore(p), canWin: canPlayerWin(p), ...sc };
   }).sort((a,b) => b.total - a.total);
   const leaderScore = scores[0] ? scores[0].total : 0;
 
@@ -1100,9 +1138,9 @@ function buildLeaderboard() {
       </tr></thead>
       <tbody>
         ${scores.map(s => `
-        <tr class="rank-${s.rank}${s.maxPossible <= leaderScore ? ' is-elim' : ''}" onclick="switchTab('p_${s.name}')">
+        <tr class="rank-${s.rank}${!s.canWin ? ' is-elim' : ''}" onclick="switchTab('p_${s.name}')">
           <td><span class="rank-num">${rankIcon(s.rank)}</span></td>
-          <td><strong>${s.name}</strong>${s.maxPossible <= leaderScore ? '<span class="elim-badge">หมดลุ้น</span>' : ''}</td>
+          <td><strong>${s.name}</strong>${!s.canWin ? '<span class="elim-badge">หมดลุ้น</span>' : ''}</td>
           <td>${s.breakdown.r32.pts}</td>
           <td>${r16Started ? s.breakdown.r16.pts : '<span style="color:var(--muted2)">—</span>'}</td>
           <td>${qfStarted ? s.breakdown.qf.pts : '<span style="color:var(--muted2)">—</span>'}</td>
